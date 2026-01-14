@@ -1,14 +1,28 @@
 import { motion } from "framer-motion";
-import { ArrowRight, Sparkles } from "lucide-react";
+import { ArrowRight, Sparkles, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate, useLocation } from "react-router-dom";
+import { useState, useEffect } from "react";
 import heroIllustration from "@/assets/hero-illustration.png";
 
 const HeroSection = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const [hasStartedQuiz, setHasStartedQuiz] = useState(false);
+
+  useEffect(() => {
+    // Check if user has started the quiz
+    const quizStarted = localStorage.getItem('quizStarted');
+    setHasStartedQuiz(quizStarted === 'true');
+  }, []);
 
   const handleQuizClick = () => {
+    if (hasStartedQuiz) {
+      // Clear quiz progress and restart
+      localStorage.removeItem('quizStarted');
+      localStorage.removeItem('quizProgress');
+      setHasStartedQuiz(false);
+    }
     if (location.pathname === "/quiz") {
       window.location.reload();
     } else {
@@ -63,8 +77,12 @@ const HeroSection = () => {
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
               <Button variant="accent" size="xl" className="group" onClick={handleQuizClick}>
-                Începe Quizul Carierei
-                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                {hasStartedQuiz ? 'Reîncepe Quizul' : 'Începe Quizul Carierei'}
+                {hasStartedQuiz ? (
+                  <RefreshCw className="w-5 h-5 group-hover:rotate-180 transition-transform" />
+                ) : (
+                  <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                )}
               </Button>
               <Button variant="outline" size="xl">
                 Vezi pachetele

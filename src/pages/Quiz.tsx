@@ -69,7 +69,14 @@ export default function Quiz() {
   };
 
   const handleAnswer = (questionId: string, answer: any) => {
-    setAnswers(prev => ({ ...prev, [questionId]: answer }));
+    setAnswers(prev => {
+      const newAnswers = { ...prev, [questionId]: answer };
+      // Mark quiz as started when first question is answered
+      if (Object.keys(newAnswers).length === 1) {
+        localStorage.setItem('quizStarted', 'true');
+      }
+      return newAnswers;
+    });
   };
 
   const handleNext = () => {
