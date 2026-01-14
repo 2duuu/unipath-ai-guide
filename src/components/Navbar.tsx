@@ -10,6 +10,7 @@ const navLinks = [
   { href: "/pachete", label: "Pachete" },
   { href: "/facultati", label: "Facultăți" },
   { href: "/quiz", label: "Quiz" },
+  { href: "/contact", label: "Contact" },
 ];
 
 const Navbar = () => {
@@ -49,13 +50,17 @@ const Navbar = () => {
 
           {/* CTA Buttons */}
           <div className="hidden md:flex items-center gap-3">
-            <Button variant="ghost" size="sm" className="gap-2">
-              <User className="w-4 h-4" />
-              Contul meu
-            </Button>
-            <Button variant="default" size="sm">
-              Începe Quiz
-            </Button>
+            <Link to="/cont">
+              <Button variant="ghost" size="sm" className="gap-2">
+                <User className="w-4 h-4" />
+                Contul meu
+              </Button>
+            </Link>
+            <Link to="/quiz">
+              <Button variant="default" size="sm">
+                Începe Quiz
+              </Button>
+            </Link>
           </div>
 
           {/* Mobile Menu Button */}
@@ -90,13 +95,17 @@ const Navbar = () => {
                 </Link>
               ))}
               <div className="pt-4 space-y-2 border-t border-border/50">
-                <Button variant="outline" className="w-full gap-2">
-                  <User className="w-4 h-4" />
-                  Contul meu
-                </Button>
-                <Button variant="default" className="w-full">
-                  Începe Quiz
-                </Button>
+                <Link to="/cont" onClick={() => setIsOpen(false)}>
+                  <Button variant="outline" className="w-full gap-2">
+                    <User className="w-4 h-4" />
+                    Contul meu
+                  </Button>
+                </Link>
+                <Link to="/quiz" onClick={() => setIsOpen(false)}>
+                  <Button variant="default" className="w-full">
+                    Începe Quiz
+                  </Button>
+                </Link>
               </div>
             </div>
           </motion.div>
