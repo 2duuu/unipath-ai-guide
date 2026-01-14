@@ -1,9 +1,21 @@
 import { motion } from "framer-motion";
 import { ArrowRight, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useNavigate, useLocation } from "react-router-dom";
 import heroIllustration from "@/assets/hero-illustration.png";
 
 const HeroSection = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const handleQuizClick = () => {
+    if (location.pathname === "/quiz") {
+      window.location.reload();
+    } else {
+      navigate("/quiz");
+    }
+  };
+
   return (
     <section className="relative min-h-screen bg-hero-gradient overflow-hidden pt-20">
       {/* Background decorations */}
@@ -50,7 +62,7 @@ const HeroSection = () => {
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-              <Button variant="accent" size="xl" className="group">
+              <Button variant="accent" size="xl" className="group" onClick={handleQuizClick}>
                 Începe Quizul Carierei
                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </Button>

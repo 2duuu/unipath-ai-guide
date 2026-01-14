@@ -9,7 +9,6 @@ const navLinks = [
   { href: "/cum-functioneaza", label: "Cum funcționează AI" },
   { href: "/pachete", label: "Pachete" },
   { href: "/facultati", label: "Facultăți" },
-  { href: "/quiz", label: "Pula" },
   { href: "/contact", label: "Contact" },
 ];
 
