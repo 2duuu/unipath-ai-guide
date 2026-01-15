@@ -50,7 +50,8 @@ const Contact = () => {
     <div className="min-h-screen bg-background">
       <Navbar />
       
-      <main className="pt-24 pb-16">
+      {/* Hero */}
+      <section className="pt-32 pb-12 bg-hero-gradient">
         <div className="container mx-auto px-4">
           {/* Header */}
           <motion.div
@@ -65,6 +66,11 @@ const Contact = () => {
               Suntem aici să te ajutăm! Trimite-ne un mesaj sau programează o ședință de consultanță.
             </p>
           </motion.div>
+        </div>
+      </section>
+
+      <main className="py-16">
+        <div className="container mx-auto px-4">
 
           {/* Contact Info Cards */}
           <motion.div
