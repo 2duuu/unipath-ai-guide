@@ -122,7 +122,7 @@ const HeroSection = () => {
               <img
                 src={heroIllustration}
                 alt="UniHub AI Education Platform"
-                className="w-full max-w-lg mx-auto lg:max-w-none drop-shadow-2xl"
+                className="w-full max-w-lg mx-auto lg:max-w-none drop-shadow-2xl rounded-3xl"
               />
             </div>
             {/* Floating elements */}
