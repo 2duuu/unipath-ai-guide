@@ -2,9 +2,10 @@
 FastAPI backend for UniHub quiz and matching system.
 Provides REST API endpoints for frontend integration.
 """
-from fastapi import FastAPI, HTTPException, Body
+from fastapi import FastAPI, HTTPException, Body, Depends
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
+from fastapi.security import OAuth2PasswordRequestForm
+from pydantic import BaseModel, EmailStr, validator
 from typing import Optional, List, Dict, Any
 from datetime import datetime
 
@@ -12,15 +13,22 @@ from src.interview_system import InterviewSystem
 from src.extended_interview_system import ExtendedInterviewSystem
 from src.matching_engine import MatchingEngine
 from src.refined_matching_engine import RefinedMatchingEngine
-from src.database import SessionLocal, StudentProfileDB, FeedbackDB, init_db
+from src.database import SessionLocal, StudentProfileDB, FeedbackDB, QuizResultDB, SavedQuizAttemptDB, init_db
 from src.models import UserProfile, UniversityMatch, ProgramMatch
+from src.auth import (
+    hash_password, 
+    verify_password, 
+    create_access_token, 
+    create_refresh_token,
+    get_current_user_id
+)
 
 app = FastAPI(title="UniHub API", version="1.0.0")
 
 # Enable CORS for frontend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://localhost:5173", "http://localhost:8080", "http://localhost:8081", "http://localhost:8082", "http://localhost:8083"],  # React/Vite defaults
+    allow_origins=["http://localhost:3000", "http://localhost:5173", "http://localhost:8080", "http://localhost:8081", "http://localhost:8082", "http://localhost:8083", "http://localhost:8084"],  # React/Vite defaults
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -40,6 +48,7 @@ class AnswerRequest(BaseModel):
 
 class InitialQuizSubmission(BaseModel):
     answers: List[AnswerRequest]
+    user_id: Optional[int] = None  # User ID if authenticated
 
 
 class ExtendedQuizSubmission(BaseModel):
@@ -54,6 +63,16 @@ class FeedbackRequest(BaseModel):
     comments: Optional[str] = ""
 
 
+class SaveQuizAttemptRequest(BaseModel):
+    user_id: int
+    quiz_type: str  # "initial" or "extended"
+    num_questions: int
+    main_match: str
+    score_percentage: float
+    matched_universities: List[str]
+    quiz_answers: Dict[str, Any]
+
+
 class QuestionResponse(BaseModel):
     questions: List[Dict[str, Any]]
 
@@ -62,6 +81,51 @@ class MatchResponse(BaseModel):
     profile_id: int
     match_type: str  # "university" or "program"
     matches: List[Dict[str, Any]]
+
+
+# Authentication Models
+class RegisterRequest(BaseModel):
+    username: str
+    email: EmailStr
+    password: str
+    name: Optional[str] = None
+    
+    @validator('username')
+    def username_alphanumeric(cls, v):
+        if not v.replace('_', '').replace('.', '').isalnum():
+            raise ValueError('Username must be alphanumeric (can include _ and .)')
+        if len(v) < 3 or len(v) > 30:
+            raise ValueError('Username must be between 3 and 30 characters')
+        return v
+    
+    @validator('password')
+    def password_strength(cls, v):
+        if len(v) < 8:
+            raise ValueError('Password must be at least 8 characters long')
+        if not any(char.isdigit() for char in v):
+            raise ValueError('Password must contain at least one number')
+        return v
+
+
+class LoginRequest(BaseModel):
+    username: str
+    password: str
+
+
+class TokenResponse(BaseModel):
+    access_token: str
+    refresh_token: str
+    token_type: str = "bearer"
+    user: Dict[str, Any]
+
+
+class UserResponse(BaseModel):
+    id: int
+    username: str
+    email: str
+    name: Optional[str]
+    is_verified: bool
+    created_at: Optional[str]
 
 
 # Helper Functions
@@ -176,6 +240,224 @@ async def root():
     }
 
 
+# Authentication Endpoints
+@app.post("/api/auth/register", response_model=TokenResponse)
+async def register(request: RegisterRequest):
+    """Register a new user."""
+    db = SessionLocal()
+    try:
+        # Check if username already exists
+        existing_user = db.query(StudentProfileDB).filter(
+            StudentProfileDB.username == request.username
+        ).first()
+        if existing_user:
+            raise HTTPException(status_code=400, detail="Username already registered")
+        
+        # Check if email already exists
+        existing_email = db.query(StudentProfileDB).filter(
+            StudentProfileDB.email == request.email
+        ).first()
+        if existing_email:
+            raise HTTPException(status_code=400, detail="Email already registered")
+        
+        # Create new user
+        hashed_pwd = hash_password(request.password)
+        new_user = StudentProfileDB(
+            username=request.username,
+            email=request.email,
+            password_hash=hashed_pwd,
+            name=request.name or request.username,
+            is_verified=False,
+            created_at=datetime.utcnow().isoformat(),
+            updated_at=datetime.utcnow().isoformat()
+        )
+        
+        db.add(new_user)
+        db.commit()
+        db.refresh(new_user)
+        
+        # Create tokens
+        access_token = create_access_token(data={"user_id": new_user.id})
+        refresh_token = create_refresh_token(data={"user_id": new_user.id})
+        
+        return {
+            "access_token": access_token,
+            "refresh_token": refresh_token,
+            "token_type": "bearer",
+            "user": {
+                "id": new_user.id,
+                "username": new_user.username,
+                "email": new_user.email,
+                "name": new_user.name,
+                "is_verified": new_user.is_verified
+            }
+        }
+    finally:
+        db.close()
+
+
+@app.post("/api/auth/login", response_model=TokenResponse)
+async def login(request: LoginRequest):
+    """Login with username or email and password."""
+    db = SessionLocal()
+    try:
+        # Find user by username or email
+        user = db.query(StudentProfileDB).filter(
+            (StudentProfileDB.username == request.username) | 
+            (StudentProfileDB.email == request.username)
+        ).first()
+        
+        if not user or not user.password_hash:
+            raise HTTPException(
+                status_code=401, 
+                detail="Incorrect username/email or password"
+            )
+        
+        # Verify password
+        if not verify_password(request.password, user.password_hash):
+            raise HTTPException(
+                status_code=401, 
+                detail="Incorrect username/email or password"
+            )
+        
+        # Update last login
+        user.last_login = datetime.utcnow().isoformat()
+        db.commit()
+        
+        # Create tokens
+        access_token = create_access_token(data={"user_id": user.id})
+        refresh_token = create_refresh_token(data={"user_id": user.id})
+        
+        return {
+            "access_token": access_token,
+            "refresh_token": refresh_token,
+            "token_type": "bearer",
+            "user": {
+                "id": user.id,
+                "username": user.username,
+                "email": user.email,
+                "name": user.name,
+                "is_verified": user.is_verified
+            }
+        }
+    finally:
+        db.close()
+
+
+@app.get("/api/auth/me", response_model=UserResponse)
+async def get_current_user(user_id: int = Depends(get_current_user_id)):
+    """Get current authenticated user's profile."""
+    db = SessionLocal()
+    try:
+        user = db.query(StudentProfileDB).filter(StudentProfileDB.id == user_id).first()
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        return {
+            "id": user.id,
+            "username": user.username,
+            "email": user.email,
+            "name": user.name,
+            "is_verified": user.is_verified,
+            "created_at": user.created_at
+        }
+    finally:
+        db.close()
+
+
+@app.get("/api/quiz/results")
+async def get_user_quiz_results(user_id: int = Depends(get_current_user_id)):
+    """Get all quiz results for the current user."""
+    db = SessionLocal()
+    try:
+        results = db.query(QuizResultDB).filter(
+            QuizResultDB.student_profile_id == user_id
+        ).order_by(QuizResultDB.created_at.desc()).all()
+        
+        return {
+            "quiz_results": [
+                {
+                    "id": result.id,
+                    "quiz_type": result.quiz_type,
+                    "main_match_field": result.main_match_field,
+                    "compatibility_score": result.compatibility_score,
+                    "description": result.description,
+                    "matched_universities": result.matched_universities,
+                    "matched_programs": result.matched_programs,
+                    "created_at": result.created_at,
+                }
+                for result in results
+            ]
+        }
+    finally:
+        db.close()
+
+
+@app.get("/api/quiz/attempts")
+async def get_user_quiz_attempts(user_id: int = Depends(get_current_user_id)):
+    """Get all saved quiz attempts for the current user."""
+    db = SessionLocal()
+    try:
+        attempts = db.query(SavedQuizAttemptDB).filter(
+            SavedQuizAttemptDB.student_profile_id == user_id
+        ).order_by(SavedQuizAttemptDB.created_at.desc()).all()
+        
+        return {
+            "quiz_attempts": [
+                {
+                    "id": attempt.id,
+                    "quiz_label": attempt.quiz_label,
+                    "quiz_type": attempt.quiz_type,
+                    "num_questions": attempt.num_questions,
+                    "main_match": attempt.main_match,
+                    "score_percentage": attempt.score_percentage,
+                    "matched_universities": attempt.matched_universities,
+                    "created_at": attempt.created_at,
+                }
+                for attempt in attempts
+            ]
+        }
+    finally:
+        db.close()
+
+
+@app.post("/api/quiz/save-attempt")
+async def save_quiz_attempt(request: SaveQuizAttemptRequest):
+    """Save a quiz attempt to user's profile history."""
+    db = SessionLocal()
+    try:
+        # Determine label based on quiz type
+        label = "Quiz rapid" if request.quiz_type == "initial" else "Quiz complet"
+        
+        # Create saved quiz attempt
+        saved_attempt = SavedQuizAttemptDB(
+            student_profile_id=request.user_id,
+            quiz_label=label,
+            quiz_type=request.quiz_type,
+            num_questions=request.num_questions,
+            main_match=request.main_match,
+            score_percentage=request.score_percentage,
+            matched_universities=request.matched_universities,
+            quiz_answers=request.quiz_answers,
+            created_at=datetime.utcnow().isoformat(),
+            updated_at=datetime.utcnow().isoformat()
+        )
+        
+        db.add(saved_attempt)
+        db.commit()
+        
+        return {
+            "success": True,
+            "message": f"{label} saved successfully",
+            "attempt_id": saved_attempt.id
+        }
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        db.close()
+
+
 @app.get("/api/questions/initial", response_model=QuestionResponse)
 async def get_initial_questions():
     """Get initial quiz questions (13 questions)."""
@@ -192,7 +474,9 @@ async def submit_initial_quiz(submission: InitialQuizSubmission):
     """
     Submit initial quiz answers and get university matches.
     Returns profile_id and list of university matches.
+    If user is authenticated, saves quiz result to database.
     """
+    db = SessionLocal()
     try:
         interview = InterviewSystem()
         
@@ -218,6 +502,27 @@ async def submit_initial_quiz(submission: InitialQuizSubmission):
         # Save profile to database
         profile_id = save_profile_to_db(profile, university_names)
         
+        # If user is authenticated, save quiz result
+        if submission.user_id:
+            # Find the student profile for this user
+            student = db.query(StudentProfileDB).filter(StudentProfileDB.id == submission.user_id).first()
+            if student:
+                # Get main match info
+                main_match = matches[0] if matches else None
+                quiz_result = QuizResultDB(
+                    student_profile_id=submission.user_id,
+                    quiz_type="initial",
+                    main_match_field=main_match.university.name if main_match else "N/A",
+                    compatibility_score=main_match.match_score if main_match else 0,
+                    description=main_match.reasoning if main_match else "No matches found",
+                    matched_universities=university_names,
+                    quiz_answers=dict((answer.question_id, answer.answer) for answer in submission.answers),
+                    created_at=datetime.utcnow().isoformat(),
+                    updated_at=datetime.utcnow().isoformat()
+                )
+                db.add(quiz_result)
+                db.commit()
+        
         # Serialize matches
         serialized_matches = [serialize_university_match(m) for m in matches]
         
@@ -228,6 +533,8 @@ async def submit_initial_quiz(submission: InitialQuizSubmission):
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        db.close()
 
 
 @app.get("/api/questions/extended")
@@ -406,4 +713,4 @@ async def get_stats():
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=8084)

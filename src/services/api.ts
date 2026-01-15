@@ -15,7 +15,7 @@ import type {
 } from '@/types/quiz';
 
 // Get API base URL from environment variable or default to localhost
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8084';
 
 // Create axios instance with default config
 const api = axios.create({
@@ -64,10 +64,10 @@ export const getInitialQuestions = async (): Promise<InitialQuizResponse> => {
  * Submit initial quiz answers and get university matches
  */
 export const submitInitialQuiz = async (
-  answers: InitialSubmitRequest
+  data: InitialSubmitRequest & { user_id?: number }
 ): Promise<InitialSubmitResponse> => {
   try {
-    const response = await api.post<InitialSubmitResponse>('/api/submit/initial', answers);
+    const response = await api.post<InitialSubmitResponse>('/api/submit/initial', data);
     return response.data;
   } catch (error) {
     handleApiError(error);
@@ -110,6 +110,52 @@ export const submitFeedback = async (
 ): Promise<FeedbackResponse> => {
   try {
     const response = await api.post<FeedbackResponse>('/api/feedback', feedback);
+    return response.data;
+  } catch (error) {
+    handleApiError(error);
+  }
+};
+
+/**
+ * Get current user's quiz results
+ */
+export const getUserQuizResults = async (): Promise<any> => {
+  try {
+    const token = localStorage.getItem('access_token');
+    const response = await api.get('/api/quiz/results', {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    return response.data;
+  } catch (error) {
+    handleApiError(error);
+  }
+};
+
+/**
+ * Get user's saved quiz attempts
+ */
+export const getUserQuizAttempts = async (): Promise<any> => {
+  try {
+    const token = localStorage.getItem('access_token');
+    const response = await api.get('/api/quiz/attempts', {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    return response.data;
+  } catch (error) {
+    handleApiError(error);
+  }
+};
+
+/**
+ * Save a quiz attempt to user profile
+ */
+export const saveQuizAttempt = async (data: any): Promise<any> => {
+  try {
+    const response = await api.post('/api/quiz/save-attempt', data);
     return response.data;
   } catch (error) {
     handleApiError(error);
