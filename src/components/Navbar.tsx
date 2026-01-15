@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X, GraduationCap, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/contexts/AuthContext";
 
 const navLinks = [
   { href: "/", label: "Acasă" },
@@ -14,6 +15,7 @@ const navLinks = [
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const { isAuthenticated, user } = useAuth();
 
   return (
     <motion.nav
@@ -26,9 +28,13 @@ const Navbar = () => {
         <div className="flex items-center justify-between h-16 md:h-20">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2 group">
-            <div className="w-10 h-10 rounded-xl bg-gradient-primary flex items-center justify-center shadow-md group-hover:shadow-glow transition-shadow duration-300">
+            <motion.div 
+              className="w-10 h-10 rounded-xl bg-gradient-primary flex items-center justify-center shadow-md group-hover:shadow-glow transition-shadow duration-300"
+              whileHover={{ rotate: [0, -5, 5, -5, 5, 0] }}
+              transition={{ duration: 0.5 }}
+            >
               <GraduationCap className="w-6 h-6 text-primary-foreground" />
-            </div>
+            </motion.div>
             <span className="font-display font-bold text-xl text-foreground">
               Uni<span className="text-primary">Hub</span>
             </span>
@@ -49,12 +55,20 @@ const Navbar = () => {
 
           {/* CTA Buttons */}
           <div className="hidden md:flex items-center gap-3">
-            <Link to="/cont">
-              <Button variant="ghost" size="sm" className="gap-2">
-                <User className="w-4 h-4" />
-                Contul meu
-              </Button>
-            </Link>
+            {isAuthenticated ? (
+              <Link to="/cont">
+                <Button variant="ghost" size="sm" className="gap-2">
+                  <User className="w-4 h-4" />
+                  {user?.username || 'Contul meu'}
+                </Button>
+              </Link>
+            ) : (
+              <Link to="/login">
+                <Button variant="outline" size="sm">
+                  Autentificare
+                </Button>
+              </Link>
+            )}
             <Link to="/quiz">
               <Button variant="default" size="sm">
                 Începe Quiz

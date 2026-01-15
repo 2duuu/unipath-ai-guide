@@ -166,6 +166,14 @@ class StudentProfileDB(Base):
     
     id = Column(Integer, primary_key=True, index=True)
     
+    # Authentication fields
+    username = Column(String, unique=True, index=True, nullable=True)  # Nullable for backward compatibility
+    password_hash = Column(String, nullable=True)  # Hashed password
+    is_verified = Column(Boolean, default=False)  # Email verification status
+    reset_token = Column(String, nullable=True)  # Password reset token
+    reset_token_expiry = Column(String, nullable=True)  # Token expiration
+    last_login = Column(String, nullable=True)  # Last login timestamp
+    
     # Personal info
     name = Column(String)
     age = Column(Integer)
@@ -225,6 +233,58 @@ class FeedbackDB(Base):
     comments = Column(Text)
     
     created_at = Column(String)
+
+
+class QuizResultDB(Base):
+    """Store quiz results for each user."""
+    __tablename__ = "quiz_results"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    student_profile_id = Column(Integer, ForeignKey("student_profiles.id"), nullable=False, index=True)
+    
+    # Quiz type
+    quiz_type = Column(String, nullable=False)  # initial, extended
+    
+    # Main match result
+    main_match_field = Column(String)  # The primary field recommendation
+    compatibility_score = Column(Float)  # 0-100
+    description = Column(Text)  # Description of why this is a good match
+    
+    # Matched universities (simplified)
+    matched_universities = Column(JSON)  # List of university names or IDs
+    matched_programs = Column(JSON)  # List of program matches
+    
+    # Quiz answers (store for reference)
+    quiz_answers = Column(JSON)  # Store the answers given
+    
+    # Metadata
+    created_at = Column(String)
+    updated_at = Column(String)
+
+
+class SavedQuizAttemptDB(Base):
+    """Store saved quiz attempts in user profile history."""
+    __tablename__ = "saved_quiz_attempts"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    student_profile_id = Column(Integer, ForeignKey("student_profiles.id"), nullable=False, index=True)
+    
+    # Quiz details
+    quiz_label = Column(String, nullable=False)  # "Quiz rapid" or "Quiz complet"
+    quiz_type = Column(String, nullable=False)  # "initial" or "extended"
+    num_questions = Column(Integer)  # Number of questions answered
+    
+    # Results summary
+    main_match = Column(String)  # Best matching university/field
+    score_percentage = Column(Float)  # Overall score 0-100
+    
+    # Full results
+    matched_universities = Column(JSON)  # List of matched universities
+    quiz_answers = Column(JSON)  # Store answers for reference
+    
+    # Metadata
+    created_at = Column(String)
+    updated_at = Column(String)
 
 
 def get_db():

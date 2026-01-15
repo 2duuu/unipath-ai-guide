@@ -5,7 +5,9 @@ import {
   getExtendedQuestions,
   submitExtendedQuiz,
   submitFeedback,
+  saveQuizAttempt,
 } from '@/services/api';
+import { useAuth } from '@/contexts/AuthContext';
 import type {
   Question,
   Answer,
@@ -18,6 +20,8 @@ import Footer from '@/components/Footer';
 import './Quiz.css';
 
 export default function Quiz() {
+  const { user } = useAuth();
+  
   // State management
   const [step, setStep] = useState<'initial' | 'results' | 'extended' | 'program-results' | 'feedback'>('initial');
   const [questions, setQuestions] = useState<Question[]>([]);
@@ -28,6 +32,7 @@ export default function Quiz() {
   const [matchType, setMatchType] = useState<'university' | 'program'>('university');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [savingQuiz, setSavingQuiz] = useState(false);
   
   // Feedback state
   const [rating, setRating] = useState(0);
@@ -104,7 +109,10 @@ export default function Quiz() {
       }));
 
       if (step === 'initial') {
-        const data = await submitInitialQuiz({ answers: answerArray });
+        const data = await submitInitialQuiz({ 
+          answers: answerArray,
+          user_id: user?.id // Pass user ID if logged in
+        });
         setProfileId(data.profile_id);
         setMatches(data.matches);
         setMatchType(data.match_type);
@@ -122,6 +130,36 @@ export default function Quiz() {
       setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleSaveQuizAttempt = async (quizType: 'initial' | 'extended') => {
+    if (!user?.id) {
+      alert('Please log in to save your quiz');
+      return;
+    }
+
+    setSavingQuiz(true);
+    try {
+      const mainMatch = matches[0] ? (quizType === 'initial' ? (matches[0] as UniversityMatch).university_name : (matches[0] as ProgramMatch).program_name) : 'No match';
+      const score = matches[0] ? (quizType === 'initial' ? (matches[0] as UniversityMatch).match_score : (matches[0] as ProgramMatch).match_score) : 0;
+      const matchedList = matches.map((m: any) => m.university_name || m.program_name);
+
+      await saveQuizAttempt({
+        user_id: user.id,
+        quiz_type: quizType,
+        num_questions: Object.keys(answers).length,
+        main_match: mainMatch,
+        score_percentage: score,
+        matched_universities: matchedList,
+        quiz_answers: answers
+      });
+
+      alert('Quiz saved to your profile!');
+    } catch (err) {
+      alert('Failed to save quiz: ' + (err instanceof Error ? err.message : 'Unknown error'));
+    } finally {
+      setSavingQuiz(false);
     }
   };
 
@@ -433,6 +471,13 @@ export default function Quiz() {
           <div className="results-actions">
             <button
               className="action-button primary"
+              onClick={() => handleSaveQuizAttempt('initial')}
+              disabled={savingQuiz}
+            >
+              {savingQuiz ? '💾 Saving...' : '💾 Save to Profile (Quiz rapid)'}
+            </button>
+            <button
+              className="action-button primary"
               onClick={() => profileId && fetchExtendedQuestions(profileId)}
             >
               📚 Take Extended Quiz for Program Recommendations
@@ -466,6 +511,13 @@ export default function Quiz() {
           <div className="results-actions">
             <button
               className="action-button primary"
+              onClick={() => handleSaveQuizAttempt('extended')}
+              disabled={savingQuiz}
+            >
+              {savingQuiz ? '💾 Saving...' : '💾 Save to Profile (Quiz complet)'}
+            </button>
+            <button
+              className="action-button secondary"
               onClick={() => setStep('feedback')}
             >
               ✍️ Provide Feedback
