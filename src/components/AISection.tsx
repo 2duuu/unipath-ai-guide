@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { Check, Cpu, TrendingUp, UserCheck } from "lucide-react";
-import aiRobot from "@/assets/ai-robot.png";
+import aiRobot from "@/assets/robot_albastru.png";
 
 const aiFeatures = [
   {
