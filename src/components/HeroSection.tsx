@@ -3,7 +3,7 @@ import { ArrowRight, Sparkles, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
-import heroIllustration from "@/assets/copil turcoaz.png";
+import heroIllustration from "@/assets/copil_turcoaz.png";
 
 const HeroSection = () => {
   const navigate = useNavigate();
