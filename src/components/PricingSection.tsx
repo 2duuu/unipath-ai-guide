@@ -118,22 +118,6 @@ const PricingSection = () => {
   return (
     <section className="py-20 md:py-28 bg-background">
       <div className="container mx-auto px-4">
-        {/* Section Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5 }}
-          className="text-center max-w-2xl mx-auto mb-16"
-        >
-          <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-4">
-            Pachete de consultanță
-          </h2>
-          <p className="text-lg text-muted-foreground">
-            Alege pachetul care se potrivește cel mai bine nevoilor tale. Toate includ acces la AI-ul nostru.
-          </p>
-        </motion.div>
-
         {/* Pricing Cards */}
         <div className="grid md:grid-cols-3 gap-6 md:gap-8 max-w-5xl mx-auto">
           {plans.map((plan, index) => (
