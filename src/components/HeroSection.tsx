@@ -84,7 +84,7 @@ const HeroSection = () => {
                   <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 )}
               </Button>
-              <Button variant="outline" size="xl">
+              <Button variant="outline" size="xl" onClick={() => navigate('/pachete')}>
                 Vezi pachetele
               </Button>
             </div>

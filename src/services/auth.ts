@@ -1,4 +1,7 @@
-const API_BASE_URL = 'http://localhost:8000/api';
+// Prefer env-configured backend base; otherwise use Vite proxy via relative /api
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL
+  ? `${import.meta.env.VITE_API_BASE_URL}/api`
+  : '/api';
 
 export interface User {
   id: number;

@@ -14,8 +14,9 @@ import type {
   StatsResponse,
 } from '@/types/quiz';
 
-// Get API base URL from environment variable or default to localhost
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8084';
+// Get API base URL from env or rely on Vite proxy via relative paths
+// If VITE_API_BASE_URL is provided (e.g., http://localhost:8084), use it; otherwise use relative URLs and proxy.
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
 
 // Create axios instance with default config
 const api = axios.create({
@@ -41,7 +42,7 @@ const handleApiError = (error: unknown): never => {
  */
 export const checkHealth = async () => {
   try {
-    const response = await api.get('/');
+    const response = await api.get('/api/health');
     return response.data;
   } catch (error) {
     handleApiError(error);

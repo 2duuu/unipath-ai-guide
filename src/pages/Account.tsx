@@ -11,6 +11,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { useAuth } from "@/contexts/AuthContext";
 import { getUserQuizResults, getUserQuizAttempts } from "@/services/api";
+import { generateQuizResultPDF } from "@/utils/pdfGenerator";
 
 const sidebarItems = [
   { id: "profile", label: "Profilul Meu", icon: User },
@@ -309,7 +310,10 @@ const Account = () => {
                                       </ul>
                                     </div>
                                   )}
-                                  <Button className="mt-4 gap-2">
+                                  <Button 
+                                    className="mt-4 gap-2"
+                                    onClick={() => generateQuizResultPDF(result, user?.name || user?.username || 'Student')}
+                                  >
                                     <Download className="w-4 h-4" />
                                     Descarcă Raportul Complet (PDF)
                                   </Button>
@@ -397,23 +401,100 @@ const Account = () => {
                   <CardHeader>
                     <CardTitle>Rezultatele Tale Quiz</CardTitle>
                   </CardHeader>
-                  <CardContent className="space-y-4">
-                    {mockAIResults.map((result) => (
-                      <Card key={result.id} className="border-border/50">
-                        <CardContent className="p-6">
-                          <div className="flex items-start justify-between mb-4">
-                            <div>
-                              <p className="text-sm text-muted-foreground">{result.date}</p>
-                              <p className="text-primary font-bold text-xl mt-1">{result.mainMatch}</p>
-                            </div>
-                            <Badge className="bg-green-100 text-green-700 text-lg px-3 py-1">
-                              {result.compatibility}%
-                            </Badge>
+                  <CardContent className="space-y-6">
+                    {loadingQuizResults ? (
+                      <div className="flex justify-center py-8">
+                        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                      </div>
+                    ) : (
+                      <>
+                        {/* Rezultate AI (Quiz Results) */}
+                        {quizResults.length > 0 ? (
+                          <div className="space-y-4">
+                            <h3 className="font-semibold text-lg">Rezultate AI</h3>
+                            {quizResults.map((result) => (
+                              <Card key={result.id} className="border-border/50">
+                                <CardContent className="p-6">
+                                  <div className="flex items-start justify-between mb-4">
+                                    <div>
+                                      <p className="text-sm text-muted-foreground">
+                                        {new Date(result.created_at).toLocaleDateString('ro-RO', {
+                                          year: 'numeric',
+                                          month: 'long',
+                                          day: 'numeric',
+                                          hour: '2-digit',
+                                          minute: '2-digit'
+                                        })}
+                                      </p>
+                                      <p className="text-primary font-bold text-xl mt-1">{result.main_match_field}</p>
+                                    </div>
+                                    <Badge className="bg-green-100 text-green-700 text-lg px-3 py-1">
+                                      {Math.round(result.compatibility_score)}%
+                                    </Badge>
+                                  </div>
+                                  <p className="text-muted-foreground">{result.description}</p>
+                                  {result.matched_universities && result.matched_universities.length > 0 && (
+                                    <div className="mt-4">
+                                      <p className="font-semibold text-sm mb-2">Universități Recomandate:</p>
+                                      <ul className="list-disc list-inside text-sm text-muted-foreground">
+                                        {result.matched_universities.map((uni, idx) => (
+                                          <li key={idx}>{uni}</li>
+                                        ))}
+                                      </ul>
+                                    </div>
+                                  )}
+                                  <Button 
+                                    className="mt-4 gap-2"
+                                    onClick={() => generateQuizResultPDF(result, user?.name || user?.username || 'Student')}
+                                  >
+                                    <Download className="w-4 h-4" />
+                                    Descarcă Raportul Complet (PDF)
+                                  </Button>
+                                </CardContent>
+                              </Card>
+                            ))}
                           </div>
-                          <p className="text-muted-foreground">{result.description}</p>
-                        </CardContent>
-                      </Card>
-                    ))}
+                        ) : (
+                          <div className="text-center py-8">
+                            <p className="text-muted-foreground">Nu ai completat nici un quiz încă.</p>
+                            <Link to="/quiz">
+                              <Button className="mt-4">Completeaza Quiz-ul</Button>
+                            </Link>
+                          </div>
+                        )}
+
+                        {/* Istoric Teste (Test History) */}
+                        {quizAttempts.length > 0 && (
+                          <div className="space-y-4 pt-6 border-t border-border/50">
+                            <h3 className="font-semibold text-lg">Istoric Teste</h3>
+                            {quizAttempts.map((attempt) => (
+                              <Card key={attempt.id} className="border-border/50">
+                                <CardContent className="p-4 flex items-center justify-between">
+                                  <div>
+                                    <p className="font-medium">{attempt.quiz_label}</p>
+                                    <p className="text-sm text-muted-foreground">
+                                      {new Date(attempt.created_at).toLocaleDateString('ro-RO', {
+                                        year: 'numeric',
+                                        month: 'long',
+                                        day: 'numeric',
+                                        hour: '2-digit',
+                                        minute: '2-digit'
+                                      })} • {attempt.num_questions} întrebări
+                                    </p>
+                                  </div>
+                                  <div className="text-right">
+                                    <Badge className="bg-green-100 text-green-700">
+                                      {Math.round(attempt.score_percentage)}%
+                                    </Badge>
+                                    <p className="text-sm text-muted-foreground mt-1">{attempt.main_match}</p>
+                                  </div>
+                                </CardContent>
+                              </Card>
+                            ))}
+                          </div>
+                        )}
+                      </>
+                    )}
                   </CardContent>
                 </Card>
               )}
