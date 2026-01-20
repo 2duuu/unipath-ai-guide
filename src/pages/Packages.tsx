@@ -3,12 +3,14 @@ import PricingSection from "@/components/PricingSection";
 import CTASection from "@/components/CTASection";
 import Footer from "@/components/Footer";
 import { ClaimPackageButton } from "@/components/ClaimPackageButton";
+import { ViewPackageDetailsButton } from "@/components/ViewPackageDetailsButton";
 import { PackageTier, PACKAGE_DETAILS } from "@/lib/packages";
 import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
 import { CheckCircle2, Sparkles } from "lucide-react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 
 const PACKAGE_FEATURES = {
   [PackageTier.DECISION_CLARITY]: [
@@ -75,46 +77,6 @@ const Packages = () => {
         </div>
       </section>
 
-      {/* Special Offer Banner */}
-      <section className="py-8">
-        <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.5, delay: 0.2 }}
-              className="p-6 rounded-lg bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950 dark:to-emerald-950 border-2 border-green-200 dark:border-green-800 shadow-lg"
-            >
-              <div className="flex items-center gap-3 mb-3">
-                <Sparkles className="h-6 w-6 text-green-600" />
-                <h3 className="font-semibold text-xl text-green-900 dark:text-green-100">
-                  🎉 Free During Testing Phase!
-                </h3>
-              </div>
-              <p className="text-green-800 dark:text-green-200 mb-4">
-                All packages are currently <strong>FREE</strong> during our testing phase! Get full access to premium features 
-                and help us improve the platform. Payment gateway will be integrated soon.
-              </p>
-              {isLoggedIn ? (
-                <ClaimPackageButton
-                  packageTier={PackageTier.DECISION_CLARITY}
-                  packageName="Choose Confidently"
-                  variant="default"
-                  className="bg-green-600 hover:bg-green-700"
-                  onSuccess={handleClaimSuccess}
-                />
-              ) : (
-                <a href="/login" className="inline-block">
-                  <button className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg font-semibold">
-                    Login to Get Started
-                  </button>
-                </a>
-              )}
-            </motion.div>
-          </div>
-        </div>
-      </section>
-
       {/* Package Cards */}
       <section className="py-12">
         <div className="container mx-auto px-4">
@@ -126,7 +88,7 @@ const Packages = () => {
                 .map((tier) => {
                 const details = PACKAGE_DETAILS[tier];
                 const features = PACKAGE_FEATURES[tier];
-                const isRecommended = tier === PackageTier.DECISION_CLARITY;
+                const isPopular = tier === PackageTier.DECISION_CLARITY;
 
                 return (
                   <motion.div
@@ -134,50 +96,46 @@ const Packages = () => {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5, delay: 0.1 }}
+                    className="relative"
                   >
+                    {isPopular && (
+                      <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 z-10">
+                        <Badge className="bg-[#F59E0B] hover:bg-[#F59E0B] text-white px-4 py-1 text-sm font-semibold">
+                          ⭐ Popular
+                        </Badge>
+                      </div>
+                    )}
+                    
                     <Card 
-                      className={`flex flex-col h-full ${isRecommended ? 'border-primary shadow-xl relative' : ''}`}
+                      className={`flex flex-col h-full ${isPopular ? 'border-[#3B82F6] border-2 shadow-lg' : 'border-border'}`}
                     >
-                      {isRecommended && (
-                        <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                          <Badge className="bg-primary text-white px-4 py-1">
-                            MOST POPULAR
-                          </Badge>
-                        </div>
-                      )}
-                      
-                      <CardHeader>
-                        <CardTitle className="text-xl">{details.displayName}</CardTitle>
-                        <CardDescription>{details.description}</CardDescription>
-                        <div className="mt-4">
-                          <div className="flex items-baseline gap-2">
-                            <span className="text-4xl font-bold">
-                              €{details.price}
-                            </span>
-                            <span className="text-sm text-muted-foreground line-through">
-                              Regular Price
+                      <CardHeader className="text-center pb-4">
+                        <CardTitle className="text-2xl font-bold mb-2">{details.name}</CardTitle>
+                        <div className="text-[#3B82F6] font-semibold mb-3">{details.displayName}</div>
+                        <p className="text-sm text-muted-foreground mb-4">{details.description}</p>
+                        <div className="space-y-1">
+                          <div className="flex items-baseline justify-center gap-1">
+                            <span className="text-sm text-muted-foreground">€</span>
+                            <span className="text-5xl font-bold">
+                              {details.price}
                             </span>
                           </div>
-                          <div className="mt-1">
-                            <span className="text-green-600 font-semibold">
-                              FREE during testing
-                            </span>
-                          </div>
+                          <div className="text-sm text-muted-foreground">VAT included</div>
                         </div>
                       </CardHeader>
                       
-                      <CardContent className="flex-1">
+                      <CardContent className="flex-1 pt-6">
                         <ul className="space-y-3">
                           {features.map((feature, index) => (
-                            <li key={index} className="flex items-start gap-2">
-                              <CheckCircle2 className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
-                              <span className="text-sm">{feature}</span>
+                            <li key={index} className="flex items-start gap-3">
+                              <CheckCircle2 className="h-5 w-5 text-[#3B82F6] mt-0.5 flex-shrink-0" />
+                              <span className="text-sm text-left">{feature}</span>
                             </li>
                           ))}
                         </ul>
                       </CardContent>
                       
-                      <CardFooter>
+                      <CardFooter className="flex flex-col gap-3 pt-6">
                         {isLoggedIn ? (
                           <ClaimPackageButton
                             packageTier={tier}
@@ -187,11 +145,17 @@ const Packages = () => {
                           />
                         ) : (
                           <a href="/login" className="w-full">
-                            <button className="w-full bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg font-semibold">
+                            <Button className="w-full">
                               Login to Get Package
-                            </button>
+                            </Button>
                           </a>
                         )}
+                        <ViewPackageDetailsButton
+                          packageTier={tier}
+                          packageFeatures={features}
+                          className="w-full"
+                          variant="outline"
+                        />
                       </CardFooter>
                     </Card>
                   </motion.div>

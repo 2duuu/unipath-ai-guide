@@ -814,10 +814,6 @@ async def claim_package(
     except ValueError:
         raise HTTPException(status_code=400, detail="Invalid package tier")
     
-    # Don't allow claiming FREE tier explicitly
-    if tier == PackageTier.FREE:
-        raise HTTPException(status_code=400, detail="Cannot claim FREE tier")
-    
     db = SessionLocal()
     try:
         profile = db.query(StudentProfileDB).filter(StudentProfileDB.id == user_id).first()

@@ -88,3 +88,27 @@ export function canDownloadPDF(packageInfo: PackageInfo): boolean {
 export function getPackageDisplayName(tier: PackageTier): string {
   return PACKAGE_DETAILS[tier]?.displayName || 'Unknown';
 }
+
+// Package tier hierarchy (lower number = lower tier)
+const TIER_HIERARCHY: Record<PackageTier, number> = {
+  [PackageTier.FREE]: 0,
+  [PackageTier.DECISION_CLARITY]: 1,
+  [PackageTier.APPLICATION_PREP]: 2,
+  [PackageTier.GUIDED_SUPPORT]: 3,
+};
+
+export function isUpgrade(currentTier: PackageTier, newTier: PackageTier): boolean {
+  return TIER_HIERARCHY[newTier] > TIER_HIERARCHY[currentTier];
+}
+
+export function isDowngrade(currentTier: PackageTier, newTier: PackageTier): boolean {
+  return TIER_HIERARCHY[newTier] < TIER_HIERARCHY[currentTier];
+}
+
+export function getNextTierUp(currentTier: PackageTier): PackageTier | null {
+  const currentLevel = TIER_HIERARCHY[currentTier];
+  const nextTier = Object.entries(TIER_HIERARCHY).find(
+    ([_, level]) => level === currentLevel + 1
+  );
+  return nextTier ? (nextTier[0] as PackageTier) : null;
+}

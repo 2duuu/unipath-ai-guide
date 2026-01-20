@@ -1,6 +1,8 @@
 import { motion } from "framer-motion";
-import { Check, X, Star, Info } from "lucide-react";
+import { Check, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -8,7 +10,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { PackageTier } from "@/lib/packages";
+import { getPackageInfo } from "@/services/packages";
 
 const plans = [
   {
@@ -25,7 +30,7 @@ const plans = [
       { text: "Rezumat PDF pentru părinți", included: true },
       { text: "Chat nelimitat cu AI specializat", included: true },
     ],
-    popular: false,
+    popular: true,
     detailedInfo: {
       title: "Package 1 — Decision & Clarity",
       subtitle: "Choose Confidently",
@@ -59,7 +64,7 @@ const plans = [
       { text: "Training pentru CV academic", included: true },
       { text: "Feedback asistat de AI + ghidare umană", included: true },
     ],
-    popular: true,
+    popular: false,
     detailedInfo: {
       title: "Package 2 — Application Preparation",
       subtitle: "Prepare to Apply",
@@ -106,20 +111,52 @@ const plans = [
   },
 ];
 
+// Map plan names to package tiers
+const planToTier: Record<string, PackageTier> = {
+  "Choose Confidently": PackageTier.DECISION_CLARITY,
+  "Prepare to Apply": PackageTier.APPLICATION_PREP,
+  "Apply with Support": PackageTier.GUIDED_SUPPORT,
+};
+
 const PricingSection = () => {
+  const navigate = useNavigate();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<typeof plans[0] | null>(null);
+  const [currentPackage, setCurrentPackage] = useState<PackageTier | null>(null);
+
+  useEffect(() => {
+    loadCurrentPackage();
+  }, []);
+
+  const loadCurrentPackage = async () => {
+    try {
+      const info = await getPackageInfo();
+      setCurrentPackage(info.package_tier);
+    } catch (error) {
+      setCurrentPackage(PackageTier.FREE);
+    }
+  };
 
   const handleViewDetails = (plan: typeof plans[0]) => {
     setSelectedPlan(plan);
     setIsDialogOpen(true);
   };
 
+  const handleChoosePlan = () => {
+    if (!selectedPlan) return;
+    
+    const targetTier = planToTier[selectedPlan.name];
+    const fromTier = currentPackage || PackageTier.FREE;
+    
+    // Navigate to checkout page with from parameter
+    navigate(`/pachete/checkout?package=${targetTier}&from=${fromTier}`);
+  };
+
   return (
-    <section className="py-20 md:py-28 bg-background">
+    <section className="py-20 md:py-28 bg-background" id="pricing">
       <div className="container mx-auto px-4">
         {/* Pricing Cards */}
-        <div className="grid md:grid-cols-3 gap-6 md:gap-8 max-w-5xl mx-auto">
+        <div className="grid md:grid-cols-3 gap-6 md:gap-8 max-w-6xl mx-auto">
           {plans.map((plan, index) => (
             <motion.div
               key={plan.name}
@@ -127,70 +164,60 @@ const PricingSection = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: index * 0.1 }}
-              className={`relative p-6 md:p-8 rounded-2xl border-2 transition-all duration-300 ${
-                plan.popular
-                  ? "border-primary bg-card shadow-glow scale-105"
-                  : "border-border bg-card hover:border-primary/30 hover:shadow-lg"
-              }`}
+              className="relative"
             >
               {plan.popular && (
-                <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1.5 rounded-full bg-gradient-accent text-accent-foreground text-sm font-semibold flex items-center gap-1.5 shadow-accent">
-                  <Star className="w-4 h-4" fill="currentColor" />
-                  Popular
+                <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 z-10">
+                  <Badge className="bg-[#F59E0B] hover:bg-[#F59E0B] text-white px-4 py-1 text-sm font-semibold">
+                    ⭐ Popular
+                  </Badge>
                 </div>
               )}
 
-              <div className="text-center mb-8">
-                <h3 className="font-display text-xl font-bold text-foreground mb-1">
-                  {plan.name}
-                </h3>
-                <p className="text-sm font-semibold text-primary mb-2">
-                  {plan.subtitle}
-                </p>
-                <p className="text-sm text-muted-foreground mb-4">
-                  {plan.description}
-                </p>
-                <div className="flex items-end justify-center gap-1">
-                  <span className="text-muted-foreground mb-1.5">€</span>
-                  <span className="font-display text-4xl md:text-5xl font-bold text-foreground">
-                    {plan.price}
-                  </span>
-                </div>
-                <p className="text-xs text-muted-foreground mt-1">VAT included</p>
-              </div>
-
-              <ul className="space-y-4 mb-8">
-                {plan.features.map((feature, i) => (
-                  <li key={i} className="flex items-center gap-3">
-                    {feature.included ? (
-                      <div className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center">
-                        <Check className="w-3.5 h-3.5 text-primary" />
-                      </div>
-                    ) : (
-                      <div className="w-5 h-5 rounded-full bg-muted flex items-center justify-center">
-                        <X className="w-3.5 h-3.5 text-muted-foreground" />
-                      </div>
-                    )}
-                    <span
-                      className={
-                        feature.included ? "text-foreground" : "text-muted-foreground"
-                      }
-                    >
-                      {feature.text}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-
-              <Button
-                variant={plan.popular ? "accent" : "outline"}
-                className="w-full"
-                size="lg"
-                onClick={() => handleViewDetails(plan)}
+              <Card 
+                className={`flex flex-col h-full ${
+                  plan.popular ? 'border-[#3B82F6] border-2 shadow-lg' : 'border-border'
+                }`}
               >
-                <Info className="w-4 h-4 mr-2" />
-                View Details
-              </Button>
+                <CardHeader className="text-center pb-4">
+                  <CardTitle className="text-2xl font-bold mb-2">{plan.name}</CardTitle>
+                  <div className="text-[#3B82F6] font-semibold mb-3">{plan.subtitle}</div>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    {plan.description}
+                  </p>
+                  <div className="space-y-1">
+                    <div className="flex items-baseline justify-center gap-1">
+                      <span className="text-sm text-muted-foreground">€</span>
+                      <span className="text-5xl font-bold">
+                        {plan.price}
+                      </span>
+                    </div>
+                    <div className="text-sm text-muted-foreground">VAT included</div>
+                  </div>
+                </CardHeader>
+
+                <CardContent className="flex-1 pt-6">
+                  <ul className="space-y-3">
+                    {plan.features.map((feature, i) => (
+                      <li key={i} className="flex items-start gap-3">
+                        <Check className="w-5 h-5 text-[#3B82F6] mt-0.5 flex-shrink-0" />
+                        <span className="text-sm text-left">{feature.text}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </CardContent>
+
+                <CardFooter className="pt-6">
+                  <Button
+                    variant={plan.name === "Choose Confidently" ? "accent" : "outline"}
+                    className="w-full"
+                    onClick={() => handleViewDetails(plan)}
+                  >
+                    <Info className="w-4 h-4 mr-2" />
+                    View Details
+                  </Button>
+                </CardFooter>
+              </Card>
             </motion.div>
           ))}
         </div>
@@ -242,7 +269,7 @@ const PricingSection = () => {
                     </div>
                     <p className="text-xs text-muted-foreground">VAT included • No hidden fees</p>
                   </div>
-                  <Button variant="accent" size="lg">
+                  <Button variant="accent" size="lg" onClick={handleChoosePlan}>
                     Choose {selectedPlan?.name}
                   </Button>
                 </div>
