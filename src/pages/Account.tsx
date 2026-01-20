@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useNavigate, Link } from "react-router-dom";
-import { User, FileText, Calendar, CreditCard, LogOut, Download, ChevronRight, Loader2 } from "lucide-react";
+import { User, FileText, Calendar, CreditCard, LogOut, Download, ChevronRight, Loader2, Package } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -11,9 +11,12 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { useAuth } from "@/contexts/AuthContext";
 import { getUserQuizResults, getUserQuizAttempts } from "@/services/api";
+import { PackageInfoCard } from "@/components/PackageInfoCard";
+import { getUserInvoices, type Invoice } from "@/services/invoices";
 
 const sidebarItems = [
   { id: "profile", label: "Profilul Meu", icon: User },
+  { id: "package", label: "Pachetul Meu", icon: Package },
   { id: "results", label: "Rezultate Quiz", icon: FileText },
   { id: "appointments", label: "Programări", icon: Calendar },
   { id: "payments", label: "Plăți & Facturi", icon: CreditCard },
@@ -42,11 +45,6 @@ const mockTestHistory = [
   { id: 3, date: "5 Ianuarie 2026", type: "Quiz Complet", questions: 25, score: "79%" },
 ];
 
-const mockInvoices = [
-  { id: "INV-001", date: "14 Ianuarie 2026", package: "Pachet Standard", amount: "249 lei", status: "Plătit" },
-  { id: "INV-002", date: "5 Ianuarie 2026", package: "Pachet Basic", amount: "99 lei", status: "Plătit" },
-];
-
 const mockAppointments = [
   { id: 1, date: "20 Ianuarie 2026", time: "14:00", type: "Consultanță Standard", status: "Confirmat" },
   { id: 2, date: "25 Ianuarie 2026", time: "10:00", type: "Sesiune Premium", status: "În așteptare" },
@@ -59,6 +57,9 @@ const Account = () => {
   const [quizResults, setQuizResults] = useState<any[]>([]);
   const [quizAttempts, setQuizAttempts] = useState<any[]>([]);
   const [loadingQuizResults, setLoadingQuizResults] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
+  const [invoices, setInvoices] = useState<Invoice[]>([]);
+  const [loadingInvoices, setLoadingInvoices] = useState(false);
 
   // Redirect to login if not authenticated
   useEffect(() => {
@@ -71,6 +72,7 @@ const Account = () => {
   useEffect(() => {
     if (isAuthenticated && !loading) {
       fetchQuizResults();
+      fetchInvoices();
     }
   }, [isAuthenticated, loading]);
 
@@ -87,6 +89,18 @@ const Account = () => {
       console.error('Failed to fetch quiz results:', error);
     } finally {
       setLoadingQuizResults(false);
+    }
+  };
+
+  const fetchInvoices = async () => {
+    setLoadingInvoices(true);
+    try {
+      const data = await getUserInvoices();
+      setInvoices(data.invoices || []);
+    } catch (error) {
+      console.error('Failed to fetch invoices:', error);
+    } finally {
+      setLoadingInvoices(false);
     }
   };
 
@@ -210,12 +224,6 @@ const Account = () => {
                           className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-6 py-4"
                         >
                           Istoric Teste
-                        </TabsTrigger>
-                        <TabsTrigger
-                          value="invoices"
-                          className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-6 py-4"
-                        >
-                          Facturi
                         </TabsTrigger>
                       </TabsList>
 
@@ -368,28 +376,36 @@ const Account = () => {
                           </div>
                         )}
                       </TabsContent>
-
-                      <TabsContent value="invoices" className="p-6">
-                        <div className="space-y-4">
-                          {mockInvoices.map((invoice) => (
-                            <Card key={invoice.id} className="border-border/50">
-                              <CardContent className="p-4 flex items-center justify-between">
-                                <div>
-                                  <p className="font-medium">{invoice.package}</p>
-                                  <p className="text-sm text-muted-foreground">{invoice.id} • {invoice.date}</p>
-                                </div>
-                                <div className="text-right">
-                                  <p className="font-semibold">{invoice.amount}</p>
-                                  <Badge className="bg-green-100 text-green-700">{invoice.status}</Badge>
-                                </div>
-                              </CardContent>
-                            </Card>
-                          ))}
-                        </div>
-                      </TabsContent>
                     </Tabs>
                   </CardContent>
                 </Card>
+              )}
+
+              {activeSection === "package" && (
+                <div className="space-y-6">
+                  <Card className="border-border/50">
+                    <CardHeader>
+                      <CardTitle>Pachetul Meu</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <PackageInfoCard key={refreshKey} />
+                    </CardContent>
+                  </Card>
+                  
+                  <Card className="border-border/50">
+                    <CardHeader>
+                      <CardTitle>Actualizează Pachetul</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-muted-foreground mb-4">
+                        Vrei mai multe funcționalități? Explorează pachetele disponibile și alege cel mai potrivit pentru tine.
+                      </p>
+                      <Button asChild>
+                        <Link to="/pachete">Vezi Toate Pachetele</Link>
+                      </Button>
+                    </CardContent>
+                  </Card>
+                </div>
               )}
 
               {activeSection === "results" && (
@@ -452,28 +468,43 @@ const Account = () => {
                     <CardTitle>Plăți & Facturi</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    {mockInvoices.map((invoice) => (
-                      <Card key={invoice.id} className="border-border/50">
-                        <CardContent className="p-4 flex items-center justify-between">
-                          <div className="flex items-center gap-4">
-                            <div className="w-12 h-12 rounded-lg bg-accent/10 flex items-center justify-center">
-                              <CreditCard className="w-6 h-6 text-accent" />
+                    {loadingInvoices ? (
+                      <div className="flex justify-center py-8">
+                        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                      </div>
+                    ) : invoices.length === 0 ? (
+                      <div className="text-center py-8 text-muted-foreground">
+                        Nu ai nicio factură încă.
+                      </div>
+                    ) : (
+                      invoices.map((invoice) => (
+                        <Card key={invoice.id} className="border-border/50">
+                          <CardContent className="p-4 flex items-center justify-between">
+                            <div className="flex items-center gap-4">
+                              <div className="w-12 h-12 rounded-lg bg-accent/10 flex items-center justify-center">
+                                <CreditCard className="w-6 h-6 text-accent" />
+                              </div>
+                              <div>
+                                <p className="font-medium">{invoice.package}</p>
+                                <p className="text-sm text-muted-foreground">
+                                  {invoice.invoice_number} • {new Date(invoice.date).toLocaleDateString('ro-RO', {
+                                    year: 'numeric',
+                                    month: 'long',
+                                    day: 'numeric'
+                                  })}
+                                </p>
+                              </div>
                             </div>
-                            <div>
-                              <p className="font-medium">{invoice.package}</p>
-                              <p className="text-sm text-muted-foreground">{invoice.id} • {invoice.date}</p>
+                            <div className="text-right">
+                              <p className="font-semibold">€{invoice.amount.toFixed(2)}</p>
+                              <Badge className="mt-1 bg-green-100 text-green-700">
+                                {invoice.status === 'paid' ? 'Plătit' : invoice.status}
+                              </Badge>
                             </div>
-                          </div>
-                          <div className="text-right">
-                            <p className="font-semibold">{invoice.amount}</p>
-                            <Button variant="ghost" size="sm" className="gap-1">
-                              <Download className="w-4 h-4" />
-                              Descarcă
-                            </Button>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
+                          </CardContent>
+                        </Card>
+                      ))
+                    )}
                   </CardContent>
                 </Card>
               )}

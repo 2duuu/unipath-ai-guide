@@ -1,4 +1,5 @@
-const API_BASE_URL = 'http://localhost:8000/api';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8084';
+const API_AUTH_URL = `${API_BASE_URL}/api/auth`;
 
 export interface User {
   id: number;
@@ -39,7 +40,7 @@ class AuthService {
   }
 
   async register(data: RegisterRequest): Promise<AuthResponse> {
-    const response = await fetch(`${API_BASE_URL}/auth/register`, {
+    const response = await fetch(`${API_AUTH_URL}/register`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -58,7 +59,7 @@ class AuthService {
   }
 
   async login(data: LoginRequest): Promise<AuthResponse> {
-    const response = await fetch(`${API_BASE_URL}/auth/login`, {
+    const response = await fetch(`${API_AUTH_URL}/login`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -82,7 +83,7 @@ class AuthService {
     }
 
     try {
-      const response = await fetch(`${API_BASE_URL}/auth/me`, {
+      const response = await fetch(`${API_AUTH_URL}/me`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${this.accessToken}`,
