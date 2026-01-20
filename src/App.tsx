@@ -12,6 +12,7 @@ import Contact from "./pages/Contact";
 import Account from "./pages/Account";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
+import PackageCheckout from "./pages/PackageCheckout";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -27,6 +28,7 @@ const App = () => (
           <Route path="/cum-functioneaza" element={<HowItWorks />} />
           <Route path="/quiz" element={<Quiz />} />
           <Route path="/pachete" element={<Packages />} />
+          <Route path="/pachete/checkout" element={<PackageCheckout />} />
           <Route path="/facultati" element={<Faculties />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/cont" element={<Account />} />

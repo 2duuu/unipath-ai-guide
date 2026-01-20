@@ -6,9 +6,12 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, relationship
 from typing import List, Optional
 import os
+from pathlib import Path
 
-# Database setup
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///data/unihub.db")
+# Database setup - use absolute path to backend/data/unihub.db
+BASE_DIR = Path(__file__).resolve().parent.parent  # backend directory
+DB_PATH = BASE_DIR / "data" / "unihub.db"
+DATABASE_URL = os.getenv("DATABASE_URL", f"sqlite:///{DB_PATH}")
 engine = create_engine(DATABASE_URL, echo=False)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
@@ -174,6 +177,11 @@ class StudentProfileDB(Base):
     reset_token_expiry = Column(String, nullable=True)  # Token expiration
     last_login = Column(String, nullable=True)  # Last login timestamp
     
+    # Package & Subscription
+    package_tier = Column(String, default="free")  # free, decision_clarity, application_prep, guided_support
+    package_purchased_at = Column(String, nullable=True)  # When package was purchased
+    package_expires_at = Column(String, nullable=True)  # Package expiration date (if applicable)
+    
     # Personal info
     name = Column(String)
     age = Column(Integer)
@@ -260,6 +268,28 @@ class QuizResultDB(Base):
     # Metadata
     created_at = Column(String)
     updated_at = Column(String)
+
+
+class InvoiceDB(Base):
+    """Store package purchase invoices."""
+    __tablename__ = "invoices"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    student_profile_id = Column(Integer, ForeignKey("student_profiles.id"), nullable=False, index=True)
+    
+    # Invoice details
+    invoice_number = Column(String, unique=True, nullable=False, index=True)
+    package_tier = Column(String, nullable=False)  # decision_clarity, application_prep, guided_support
+    package_name = Column(String, nullable=False)  # Display name
+    amount = Column(Float, nullable=False)  # Price in EUR
+    currency = Column(String, default="EUR")
+    status = Column(String, default="paid")  # paid, pending, cancelled
+    
+    # Timestamps
+    created_at = Column(String, nullable=False)
+    
+    # Relationship
+    student = relationship("StudentProfileDB", backref="invoices")
 
 
 class SavedQuizAttemptDB(Base):
