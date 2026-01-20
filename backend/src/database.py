@@ -1,7 +1,7 @@
 """
 Database configuration and models for UniHub with SQLite/SQLAlchemy.
 """
-from sqlalchemy import create_engine, Column, Integer, String, Float, Boolean, JSON, ForeignKey, Text
+from sqlalchemy import create_engine, Column, Integer, String, Float, Boolean, JSON, ForeignKey, Text, text
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, relationship
 from typing import List, Optional
@@ -160,6 +160,21 @@ def init_db():
     print("Database initialized successfully!")
 
 
+def ensure_payment_schema():
+    """Ensure payment-related columns and tables exist in SQLite."""
+    with engine.connect() as conn:
+        # Ensure package columns on student_profiles
+        cols = {row[1] for row in conn.execute(text("PRAGMA table_info(student_profiles)"))}
+        if "package_level" not in cols:
+            conn.execute(text("ALTER TABLE student_profiles ADD COLUMN package_level TEXT"))
+        if "package_status" not in cols:
+            conn.execute(text("ALTER TABLE student_profiles ADD COLUMN package_status TEXT"))
+        conn.commit()
+
+    # Create payments table if missing
+    Base.metadata.create_all(bind=engine, tables=[PaymentDB.__table__])
+
+
 class StudentProfileDB(Base):
     """Student profile storage."""
     __tablename__ = "student_profiles"
@@ -173,6 +188,8 @@ class StudentProfileDB(Base):
     reset_token = Column(String, nullable=True)  # Password reset token
     reset_token_expiry = Column(String, nullable=True)  # Token expiration
     last_login = Column(String, nullable=True)  # Last login timestamp
+    package_level = Column(String, nullable=True)  # Selected package key
+    package_status = Column(String, nullable=True)  # active, none, canceled
     
     # Personal info
     name = Column(String)
@@ -260,6 +277,23 @@ class QuizResultDB(Base):
     # Metadata
     created_at = Column(String)
     updated_at = Column(String)
+
+
+class PaymentDB(Base):
+    """Payments and invoices for user packages."""
+    __tablename__ = "payments"
+
+    id = Column(Integer, primary_key=True, index=True)
+    student_profile_id = Column(Integer, ForeignKey("student_profiles.id"), nullable=False, index=True)
+    invoice_number = Column(String, unique=True, index=True)
+    package_key = Column(String, nullable=False)
+    package_name = Column(String, nullable=False)
+    amount_eur = Column(Float, nullable=False)
+    currency = Column(String, default="EUR")
+    status = Column(String, default="pending")  # pending, paid, failed
+    created_at = Column(String)
+    updated_at = Column(String)
+    paid_at = Column(String, nullable=True)
 
 
 class SavedQuizAttemptDB(Base):

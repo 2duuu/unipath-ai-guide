@@ -1,124 +1,23 @@
 import { motion } from "framer-motion";
 import { Check, X, Star, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { useState } from "react";
-
-const plans = [
-  {
-    name: "Choose Confidently",
-    subtitle: "Decision & Clarity",
-    price: "36.30",
-    description: "Ia decizii informate cu claritate completă",
-    features: [
-      { text: "Tot din Academic Orientation", included: true },
-      { text: "Comparații AI avansate (A vs B vs C)", included: true },
-      { text: "Universități & programe clasate după potrivire", included: true },
-      { text: "Analiză trade-off-uri (cost, competitivitate)", included: true },
-      { text: "Estimări probabilitate admitere (intervale)", included: true },
-      { text: "Rezumat PDF pentru părinți", included: true },
-      { text: "Chat nelimitat cu AI specializat", included: true },
-    ],
-    popular: false,
-    detailedInfo: {
-      title: "Package 1 — Decision & Clarity",
-      subtitle: "Choose Confidently",
-      includes: [
-        "Full UniHub Quiz (core + extended)",
-        "University recommendations",
-        "Program recommendations",
-        "AI explanations of academic fit",
-        "High-level difficulty indicators",
-        "Advanced AI comparisons (A vs B vs C)",
-        "Ranked best-fit universities & programs",
-        "Trade-off analysis (cost, competitiveness, outcomes)",
-        "Risk & uncertainty overview",
-        "AI-based admission probability estimates (ranges)",
-        "Parent-friendly written summary (PDF)",
-        "Unlimited chat with Trained AI model in academic advising"
-      ],
-      note: "Ethical note: Admission probabilities are estimates, not guarantees."
-    }
-  },
-  {
-    name: "Prepare to Apply",
-    subtitle: "Application Preparation",
-    price: "121",
-    description: "Pregătește aplicația perfectă cu îndrumări personalizate",
-    features: [
-      { text: "Tot din Decision & Clarity", included: true },
-      { text: "Strategie personalizată de aplicare", included: true },
-      { text: "Timeline deadline-uri și cerințe", included: true },
-      { text: "Training pentru scrisoare de motivație", included: true },
-      { text: "Training pentru CV academic", included: true },
-      { text: "Feedback asistat de AI + ghidare umană", included: true },
-    ],
-    popular: true,
-    detailedInfo: {
-      title: "Package 2 — Application Preparation",
-      subtitle: "Prepare to Apply",
-      includes: [
-        "Everything from Decision & Clarity package",
-        "Personalized application strategy",
-        "Deadline & requirement timeline",
-        "Motivation letter training",
-        "Academic CV training",
-        "AI-assisted feedback + human guidance"
-      ],
-      note: "Boundary: UniHub provides guidance and training. All application materials are written by the student."
-    }
-  },
-  {
-    name: "Apply with Support",
-    subtitle: "Guided Application Support",
-    price: "484",
-    description: "Suport complet ghidat pentru aplicare",
-    features: [
-      { text: "Tot din Application Preparation", included: true },
-      { text: "Consiliere academică video call 1-on-1", included: true },
-      { text: "Suport ghidat de om pentru aplicare", included: true },
-      { text: "Verificări completitudine documente", included: true },
-      { text: "Pregătire pentru trimitere", included: true },
-      { text: "Tracking deadline-uri & reminder-e", included: true },
-      { text: "Sesiuni Peer Insight (Bonus)", included: true },
-    ],
-    popular: false,
-    detailedInfo: {
-      title: "Package 3 — Guided Application Support",
-      subtitle: "Apply with Support",
-      includes: [
-        "Everything from Application Preparation package",
-        "1-on-1 academic advising video call",
-        "Human-guided application support",
-        "Document completeness & readiness checks",
-        "Submission preparation (no automated applying)",
-        "Deadline tracking & reminders",
-        "Peer Insight Sessions (Bonus)"
-      ],
-      note: null
-    }
-  },
-];
+import { Badge } from "@/components/ui/badge";
+import { useNavigate } from "react-router-dom";
+import { plans } from "@/data/plans";
+import { useAuth } from "@/contexts/AuthContext";
 
 const PricingSection = () => {
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [selectedPlan, setSelectedPlan] = useState<typeof plans[0] | null>(null);
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const currentPackage = user?.package_level;
 
-  const handleViewDetails = (plan: typeof plans[0]) => {
-    setSelectedPlan(plan);
-    setIsDialogOpen(true);
+  const handleViewDetails = (planKey: string) => {
+    navigate(`/pachete/${planKey}`);
   };
 
   return (
     <section className="py-20 md:py-28 bg-background">
       <div className="container mx-auto px-4">
-        {/* Pricing Cards */}
         <div className="grid md:grid-cols-3 gap-6 md:gap-8 max-w-5xl mx-auto">
           {plans.map((plan, index) => (
             <motion.div
@@ -133,12 +32,17 @@ const PricingSection = () => {
                   : "border-border bg-card hover:border-primary/30 hover:shadow-lg"
               }`}
             >
-              {plan.popular && (
-                <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1.5 rounded-full bg-gradient-accent text-accent-foreground text-sm font-semibold flex items-center gap-1.5 shadow-accent">
-                  <Star className="w-4 h-4" fill="currentColor" />
-                  Popular
-                </div>
-              )}
+              <div className="flex items-center justify-between mb-3">
+                {plan.popular && (
+                  <div className="px-4 py-1.5 rounded-full bg-gradient-accent text-accent-foreground text-sm font-semibold flex items-center gap-1.5 shadow-accent">
+                    <Star className="w-4 h-4" fill="currentColor" />
+                    Popular
+                  </div>
+                )}
+                {currentPackage === plan.key && (
+                  <Badge variant="secondary" className="ml-auto">Pachet curent</Badge>
+                )}
+              </div>
 
               <div className="text-center mb-8">
                 <h3 className="font-display text-xl font-bold text-foreground mb-1">
@@ -157,6 +61,9 @@ const PricingSection = () => {
                   </span>
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">VAT included</p>
+                {currentPackage === plan.key && (
+                  <p className="text-xs text-primary font-semibold mt-2">Acesta este pachetul tău activ</p>
+                )}
               </div>
 
               <ul className="space-y-4 mb-8">
@@ -171,11 +78,7 @@ const PricingSection = () => {
                         <X className="w-3.5 h-3.5 text-muted-foreground" />
                       </div>
                     )}
-                    <span
-                      className={
-                        feature.included ? "text-foreground" : "text-muted-foreground"
-                      }
-                    >
+                    <span className={feature.included ? "text-foreground" : "text-muted-foreground"}>
                       {feature.text}
                     </span>
                   </li>
@@ -186,70 +89,14 @@ const PricingSection = () => {
                 variant={plan.popular ? "accent" : "outline"}
                 className="w-full"
                 size="lg"
-                onClick={() => handleViewDetails(plan)}
+                onClick={() => handleViewDetails(plan.key)}
               >
                 <Info className="w-4 h-4 mr-2" />
-                View Details
+                {currentPackage === plan.key ? "Vezi beneficiile (activ)" : "Vezi beneficiile"}
               </Button>
             </motion.div>
           ))}
         </div>
-
-        {/* Detailed Package Dialog */}
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle className="text-2xl font-display">
-                {selectedPlan?.detailedInfo.title}
-              </DialogTitle>
-              <DialogDescription className="text-lg font-semibold text-primary">
-                {selectedPlan?.detailedInfo.subtitle}
-              </DialogDescription>
-            </DialogHeader>
-            
-            <div className="space-y-6">
-              <div>
-                <h4 className="font-semibold text-lg mb-3">Includes:</h4>
-                <ul className="space-y-2">
-                  {selectedPlan?.detailedInfo.includes.map((item, i) => (
-                    <li key={i} className="flex items-start gap-3">
-                      <div className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center mt-0.5">
-                        <Check className="w-3.5 h-3.5 text-primary" />
-                      </div>
-                      <span className="text-foreground flex-1">{item}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              {selectedPlan?.detailedInfo.note && (
-                <div className="p-4 rounded-lg bg-muted/50 border border-border">
-                  <p className="text-sm text-muted-foreground italic">
-                    {selectedPlan.detailedInfo.note}
-                  </p>
-                </div>
-              )}
-
-              <div className="pt-4 border-t">
-                <div className="flex items-end justify-between mb-4">
-                  <div>
-                    <p className="text-sm text-muted-foreground">Price</p>
-                    <div className="flex items-end gap-1">
-                      <span className="text-muted-foreground">€</span>
-                      <span className="font-display text-3xl font-bold text-foreground">
-                        {selectedPlan?.price}
-                      </span>
-                    </div>
-                    <p className="text-xs text-muted-foreground">VAT included • No hidden fees</p>
-                  </div>
-                  <Button variant="accent" size="lg">
-                    Choose {selectedPlan?.name}
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
       </div>
     </section>
   );

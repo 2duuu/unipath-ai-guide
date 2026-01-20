@@ -152,6 +152,71 @@ export const getUserQuizAttempts = async (): Promise<any> => {
 };
 
 /**
+ * Payments: create invoice for selected package
+ */
+export const createPayment = async (data: {
+  package_key: string;
+  package_name: string;
+  amount_eur: number;
+  currency?: string;
+}): Promise<any> => {
+  try {
+    const token = localStorage.getItem('access_token');
+    const response = await api.post('/api/payments', data, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return response.data;
+  } catch (error) {
+    handleApiError(error);
+  }
+};
+
+/**
+ * Payments: list current user's invoices
+ */
+export const getPayments = async (): Promise<any> => {
+  try {
+    const token = localStorage.getItem('access_token');
+    const response = await api.get('/api/payments/me', {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return response.data;
+  } catch (error) {
+    handleApiError(error);
+  }
+};
+
+/**
+ * Payments: confirm payment and upgrade package
+ */
+export const confirmPayment = async (paymentId: number): Promise<any> => {
+  try {
+    const token = localStorage.getItem('access_token');
+    const response = await api.post(`/api/payments/${paymentId}/confirm`, {}, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return response.data;
+  } catch (error) {
+    handleApiError(error);
+  }
+};
+
+/**
+ * Subscription: cancel current subscription and reset to free
+ */
+export const cancelSubscription = async (): Promise<any> => {
+  try {
+    const token = localStorage.getItem('access_token');
+    const response = await api.post('/api/subscription/cancel', {}, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return response.data;
+  } catch (error) {
+    handleApiError(error);
+  }
+};
+
+/**
  * Save a quiz attempt to user profile
  */
 export const saveQuizAttempt = async (data: any): Promise<any> => {

@@ -7,6 +7,8 @@ import Index from "./pages/Index";
 import HowItWorks from "./pages/HowItWorks";
 import Quiz from "./pages/Quiz";
 import Packages from "./pages/Packages";
+import PlanDetails from "./pages/PlanDetails";
+import BenefitDetail from "./pages/BenefitDetail";
 import Faculties from "./pages/Faculties";
 import Contact from "./pages/Contact";
 import Account from "./pages/Account";
@@ -27,6 +29,8 @@ const App = () => (
           <Route path="/cum-functioneaza" element={<HowItWorks />} />
           <Route path="/quiz" element={<Quiz />} />
           <Route path="/pachete" element={<Packages />} />
+          <Route path="/pachete/:planKey" element={<PlanDetails />} />
+          <Route path="/benefit/:packageKey/:benefitIndex" element={<BenefitDetail />} />
           <Route path="/facultati" element={<Faculties />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/cont" element={<Account />} />

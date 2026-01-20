@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { useNavigate, Link } from "react-router-dom";
-import { User, FileText, Calendar, CreditCard, LogOut, Download, ChevronRight, Loader2 } from "lucide-react";
+import { useNavigate, Link, useSearchParams } from "react-router-dom";
+import { User, FileText, Calendar, CreditCard, LogOut, Download, ChevronRight, Loader2, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { useAuth } from "@/contexts/AuthContext";
-import { getUserQuizResults, getUserQuizAttempts } from "@/services/api";
+import { getUserQuizResults, getUserQuizAttempts, getPayments, confirmPayment, cancelSubscription } from "@/services/api";
 import { generateQuizResultPDF } from "@/utils/pdfGenerator";
 
 const sidebarItems = [
@@ -43,11 +43,6 @@ const mockTestHistory = [
   { id: 3, date: "5 Ianuarie 2026", type: "Quiz Complet", questions: 25, score: "79%" },
 ];
 
-const mockInvoices = [
-  { id: "INV-001", date: "14 Ianuarie 2026", package: "Pachet Standard", amount: "249 lei", status: "Plătit" },
-  { id: "INV-002", date: "5 Ianuarie 2026", package: "Pachet Basic", amount: "99 lei", status: "Plătit" },
-];
-
 const mockAppointments = [
   { id: 1, date: "20 Ianuarie 2026", time: "14:00", type: "Consultanță Standard", status: "Confirmat" },
   { id: 2, date: "25 Ianuarie 2026", time: "10:00", type: "Sesiune Premium", status: "În așteptare" },
@@ -55,11 +50,17 @@ const mockAppointments = [
 
 const Account = () => {
   const [activeSection, setActiveSection] = useState("profile");
-  const { user, loading, logout, isAuthenticated } = useAuth();
+  const { user, loading, logout, isAuthenticated, refreshUser } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [quizResults, setQuizResults] = useState<any[]>([]);
   const [quizAttempts, setQuizAttempts] = useState<any[]>([]);
   const [loadingQuizResults, setLoadingQuizResults] = useState(false);
+  const [payments, setPayments] = useState<any[]>([]);
+  const [loadingPayments, setLoadingPayments] = useState(false);
+  const [paymentsError, setPaymentsError] = useState<string | null>(null);
+  const [showCancelDialog, setShowCancelDialog] = useState(false);
+  const [cancellingSubscription, setCancellingSubscription] = useState(false);
 
   // Redirect to login if not authenticated
   useEffect(() => {
@@ -68,10 +69,21 @@ const Account = () => {
     }
   }, [loading, isAuthenticated, navigate]);
 
+  // Sync tab from query string (?tab=payments)
+  useEffect(() => {
+    const tab = searchParams.get('tab');
+    if (tab === 'payments') {
+      setActiveSection('payments');
+      // Refetch payments when navigating to payments tab
+      fetchPayments();
+    }
+  }, [searchParams]);
+
   // Fetch quiz results when component mounts
   useEffect(() => {
     if (isAuthenticated && !loading) {
       fetchQuizResults();
+      fetchPayments();
     }
   }, [isAuthenticated, loading]);
 
@@ -89,6 +101,65 @@ const Account = () => {
     } finally {
       setLoadingQuizResults(false);
     }
+  };
+
+  const fetchPayments = async () => {
+    setLoadingPayments(true);
+    setPaymentsError(null);
+    try {
+      const data = await getPayments();
+      setPayments(data?.payments || []);
+    } catch (error: any) {
+      const message = error?.message || 'Nu am putut încărca plățile.';
+      setPaymentsError(message);
+    } finally {
+      setLoadingPayments(false);
+    }
+  };
+
+  const handleConfirmPayment = async (paymentId: number) => {
+    try {
+      await confirmPayment(paymentId);
+      await refreshUser();
+      fetchPayments();
+    } catch (error) {
+      console.error('Failed to confirm payment', error);
+    }
+  };
+
+  const handleCancelSubscription = async () => {
+    setCancellingSubscription(true);
+    try {
+      await cancelSubscription();
+      await refreshUser();
+      fetchPayments();
+      setShowCancelDialog(false);
+    } catch (error) {
+      console.error('Failed to cancel subscription', error);
+      alert('Failed to cancel subscription. Please try again.');
+    } finally {
+      setCancellingSubscription(false);
+    }
+  };
+
+  // Get unique payments per package (keep most recent), sorted by date
+  const getUniquePayments = () => {
+    if (!payments || payments.length === 0) return [];
+    
+    // Group by package_key to get the most recent payment per package
+    const paymentsByPackage: { [key: string]: any } = {};
+    
+    payments.forEach(payment => {
+      const key = payment.package_key || payment.package_name;
+      if (!paymentsByPackage[key] || new Date(payment.created_at) > new Date(paymentsByPackage[key].created_at)) {
+        paymentsByPackage[key] = payment;
+      }
+    });
+    
+    // Convert to array and sort by date (newest first)
+    return Object.values(paymentsByPackage).sort((a, b) => 
+      new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    );
   };
 
   const handleLogout = () => {
@@ -375,20 +446,60 @@ const Account = () => {
 
                       <TabsContent value="invoices" className="p-6">
                         <div className="space-y-4">
-                          {mockInvoices.map((invoice) => (
-                            <Card key={invoice.id} className="border-border/50">
-                              <CardContent className="p-4 flex items-center justify-between">
-                                <div>
-                                  <p className="font-medium">{invoice.package}</p>
-                                  <p className="text-sm text-muted-foreground">{invoice.id} • {invoice.date}</p>
-                                </div>
-                                <div className="text-right">
-                                  <p className="font-semibold">{invoice.amount}</p>
-                                  <Badge className="bg-green-100 text-green-700">{invoice.status}</Badge>
-                                </div>
-                              </CardContent>
-                            </Card>
-                          ))}
+                          {paymentsError && (
+                            <p className="text-sm text-destructive">{paymentsError}</p>
+                          )}
+                          {loadingPayments ? (
+                            <div className="flex items-center gap-3 text-muted-foreground">
+                              <Loader2 className="w-4 h-4 animate-spin" /> Se încarcă facturile...
+                            </div>
+                          ) : getUniquePayments().length === 0 ? (
+                            <p className="text-sm text-muted-foreground">Nu ai încă facturi.</p>
+                          ) : (
+                            getUniquePayments().map((invoice) => (
+                              <Card key={invoice.id} className="border-border/50 hover:border-border/80 transition-colors">
+                                <CardContent className="p-4 flex items-center justify-between">
+                                  <div>
+                                    <p className="font-medium">{invoice.package_name}</p>
+                                    <p className="text-sm text-muted-foreground">{invoice.invoice_number} • {new Date(invoice.created_at).toLocaleDateString()}</p>
+                                  </div>
+                                  <div className="text-right space-y-1">
+                                    <div className="flex items-center justify-end gap-2">
+                                      <p className={`font-semibold ${
+                                        invoice.amount_eur === 0 ? "text-green-600 dark:text-green-400" :
+                                        invoice.status === "paid" ? "text-foreground" :
+                                        "text-blue-600 dark:text-blue-400"
+                                      }`}>€{invoice.amount_eur}</p>
+                                      <Badge variant={invoice.status === "paid" ? "default" : "secondary"}>
+                                        {invoice.status === "paid" ? "Plătit" : "Neplătit"}
+                                      </Badge>
+                                    </div>
+                                    {invoice.status !== "paid" && (
+                                      <Button
+                                        variant="accent"
+                                        size="sm"
+                                        onClick={() => handleConfirmPayment(invoice.id)}
+                                      >
+                                        Confirmă plata
+                                      </Button>
+                                    )}
+                                  </div>
+                                </CardContent>
+                              </Card>
+                            ))
+                          )}
+
+                          {/* Cancel Subscription Button */}
+                          <div className="border-t border-border/50 pt-4 mt-4">
+                            <Button
+                              variant="outline"
+                              className="w-full text-destructive border-destructive hover:bg-destructive/10"
+                              onClick={() => setShowCancelDialog(true)}
+                            >
+                              <AlertCircle className="w-4 h-4 mr-2" />
+                              Anulează Abonament (Revenire la Gratuit)
+                            </Button>
+                          </div>
                         </div>
                       </TabsContent>
                     </Tabs>
@@ -533,28 +644,144 @@ const Account = () => {
                     <CardTitle>Plăți & Facturi</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    {mockInvoices.map((invoice) => (
-                      <Card key={invoice.id} className="border-border/50">
-                        <CardContent className="p-4 flex items-center justify-between">
-                          <div className="flex items-center gap-4">
-                            <div className="w-12 h-12 rounded-lg bg-accent/10 flex items-center justify-center">
-                              <CreditCard className="w-6 h-6 text-accent" />
+                    {paymentsError && (
+                      <p className="text-sm text-destructive">{paymentsError}</p>
+                    )}
+
+                    {loadingPayments ? (
+                      <div className="flex items-center gap-3 text-muted-foreground">
+                        <Loader2 className="w-4 h-4 animate-spin" /> Se încarcă plățile...
+                      </div>
+                    ) : getUniquePayments().length === 0 ? (
+                      <p className="text-sm text-muted-foreground">Nu ai încă facturi sau plăți.</p>
+                    ) : (
+                      getUniquePayments().map((payment) => (
+                        <Card key={payment.id} className="border-border/50 hover:border-border/80 transition-colors">
+                          <CardContent className="p-4 flex items-center justify-between">
+                            <div className="flex items-center gap-4">
+                              <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${
+                                payment.amount_eur === 0 ? "bg-green-500/10" :
+                                "bg-accent/10"
+                              }`}>
+                                <CreditCard className={`w-6 h-6 ${
+                                  payment.amount_eur === 0 ? "text-green-600 dark:text-green-400" :
+                                  "text-accent"
+                                }`} />
+                              </div>
+                              <div>
+                                <p className="font-medium">{payment.package_name}</p>
+                                <p className="text-sm text-muted-foreground">{payment.invoice_number} • {new Date(payment.created_at).toLocaleDateString()}</p>
+                              </div>
+                            </div>
+                            <div className="text-right space-y-1">
+                              <div className="flex items-center justify-end gap-2">
+                                <p className={`font-semibold ${
+                                  payment.amount_eur === 0 ? "text-green-600 dark:text-green-400" :
+                                  payment.status === "paid" ? "text-foreground" :
+                                  "text-blue-600 dark:text-blue-400"
+                                }`}>€{payment.amount_eur}</p>
+                                <Badge variant={payment.status === "paid" ? "default" : "secondary"}>
+                                  {payment.status === "paid" ? "Plătit" : "Neplătit"}
+                                </Badge>
+                              </div>
+                              {payment.status !== "paid" && (
+                                <Button
+                                  variant="accent"
+                                  size="sm"
+                                  onClick={() => handleConfirmPayment(payment.id)}
+                                >
+                                  Confirmă plata
+                                </Button>
+                              )}
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))
+                    )}
+
+                    {/* Cancel Subscription Button */}
+                    <div className="border-t border-border/50 pt-4 mt-4">
+                      <Button
+                        variant="outline"
+                        className="w-full text-destructive border-destructive hover:bg-destructive/10"
+                        onClick={() => setShowCancelDialog(true)}
+                      >
+                        <AlertCircle className="w-4 h-4 mr-2" />
+                        Anulează Abonament (Revenire la Gratuit)
+                      </Button>
+                    </div>
+
+                    {/* Cancel Subscription Confirmation Dialog */}
+                    {showCancelDialog && (
+                      <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+                        onClick={() => !cancellingSubscription && setShowCancelDialog(false)}
+                      >
+                        <motion.div
+                          initial={{ scale: 0.95 }}
+                          animate={{ scale: 1 }}
+                          exit={{ scale: 0.95 }}
+                          className="bg-background rounded-lg shadow-lg max-w-sm w-full p-6"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <div className="flex items-start gap-4 mb-4">
+                            <div className="w-12 h-12 rounded-lg bg-destructive/10 flex items-center justify-center">
+                              <AlertCircle className="w-6 h-6 text-destructive" />
                             </div>
                             <div>
-                              <p className="font-medium">{invoice.package}</p>
-                              <p className="text-sm text-muted-foreground">{invoice.id} • {invoice.date}</p>
+                              <h3 className="font-semibold text-lg">Anulare Abonament</h3>
+                              <p className="text-sm text-muted-foreground mt-1">
+                                Ești sigur că dorești să anulezi abonamentul curent? Vei reveni la pachetul gratuit.
+                              </p>
                             </div>
                           </div>
-                          <div className="text-right">
-                            <p className="font-semibold">{invoice.amount}</p>
-                            <Button variant="ghost" size="sm" className="gap-1">
-                              <Download className="w-4 h-4" />
-                              Descarcă
+
+                          <div className="bg-muted/50 rounded p-3 mb-6">
+                            <p className="text-sm text-muted-foreground">
+                              <strong>Pachet curent:</strong>{' '}
+                              {user?.package_level ? (
+                                user.package_level === 'choose_confidently' ? 'Level 1' :
+                                user.package_level === 'prepare_to_apply' ? 'Level 2' :
+                                user.package_level === 'apply_with_support' ? 'Level 3' :
+                                user.package_level
+                              ) : 'Gratuit'}
+                            </p>
+                            <p className="text-sm text-muted-foreground mt-1">
+                              Istoricul plăților tale va fi păstrat.
+                            </p>
+                          </div>
+
+                          <div className="flex gap-3">
+                            <Button
+                              variant="outline"
+                              className="flex-1"
+                              onClick={() => setShowCancelDialog(false)}
+                              disabled={cancellingSubscription}
+                            >
+                              Anulează
+                            </Button>
+                            <Button
+                              variant="destructive"
+                              className="flex-1"
+                              onClick={handleCancelSubscription}
+                              disabled={cancellingSubscription}
+                            >
+                              {cancellingSubscription ? (
+                                <>
+                                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                  Se anulează...
+                                </>
+                              ) : (
+                                'Anulează Abonament'
+                              )}
                             </Button>
                           </div>
-                        </CardContent>
-                      </Card>
-                    ))}
+                        </motion.div>
+                      </motion.div>
+                    )}
                   </CardContent>
                 </Card>
               )}

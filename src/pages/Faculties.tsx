@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Search, Filter, MapPin, Users, Award, ArrowRight, Loader2, X } from "lucide-react";
+import { Search, Filter, MapPin, Users, Award, ArrowRight, Loader2, X, Lock } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface University {
   id: number;
@@ -43,6 +44,8 @@ const Faculties = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedUniversity, setSelectedUniversity] = useState<University | null>(null);
+  const { isAuthenticated, user } = useAuth();
+  const hasPaidPackage = Boolean(isAuthenticated && user?.package_level && user.package_level !== "free");
 
   // Fetch universities from API
   useEffect(() => {
@@ -233,14 +236,34 @@ const Faculties = () => {
                       </p>
                     )}
 
-                    <Button 
-                      variant="outline" 
-                      className="w-full group-hover:bg-primary group-hover:text-primary-foreground transition-colors"
-                      onClick={() => setSelectedUniversity(university)}
-                    >
-                      Vezi detalii
-                      <ArrowRight className="w-4 h-4 ml-2" />
-                    </Button>
+                    <div className="space-y-2">
+                      <Button 
+                        variant="outline" 
+                        className="w-full group-hover:bg-primary group-hover:text-primary-foreground transition-colors"
+                        onClick={() => setSelectedUniversity(university)}
+                      >
+                        Vezi detalii
+                        <ArrowRight className="w-4 h-4 ml-2" />
+                      </Button>
+
+                      <Button
+                        variant={hasPaidPackage ? "default" : "outline"}
+                        className="w-full flex items-center justify-center gap-2"
+                        disabled={!hasPaidPackage}
+                        onClick={() => {
+                          if (!hasPaidPackage) return;
+                          setSelectedUniversity(university);
+                        }}
+                      >
+                        {!hasPaidPackage && <Lock className="w-4 h-4" />}
+                        Vezi compatibilitate AI
+                      </Button>
+                      {!hasPaidPackage && (
+                        <p className="text-xs text-muted-foreground text-center">
+                          Disponibil cu un pachet plătit
+                        </p>
+                      )}
+                    </div>
                   </motion.div>
                 ))}
               </div>

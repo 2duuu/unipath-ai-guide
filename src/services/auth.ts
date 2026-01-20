@@ -10,6 +10,8 @@ export interface User {
   name: string | null;
   is_verified: boolean;
   created_at?: string;
+  package_level?: string | null;
+  package_status?: string | null;
 }
 
 export interface LoginRequest {

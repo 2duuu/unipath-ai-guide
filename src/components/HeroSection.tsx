@@ -76,15 +76,11 @@ const HeroSection = () => {
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-              <Button variant="accent" size="xl" className="group" onClick={handleQuizClick}>
+              <Button variant="accent" size="xl" className="group" onClick={() => navigate('/pachete')}>
                 {hasStartedQuiz ? 'Reîncepe Quizul' : 'Începe Quizul Carierei'}
-                {hasStartedQuiz ? (
-                  <RefreshCw className="w-5 h-5 group-hover:rotate-180 transition-transform" />
-                ) : (
-                  <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                )}
+                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </Button>
-              <Button variant="outline" size="xl" onClick={() => navigate('/pachete')}>
+              <Button variant="outline" size="xl" onClick={handleQuizClick}>
                 Vezi pachetele
               </Button>
             </div>

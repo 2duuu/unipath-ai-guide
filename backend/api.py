@@ -13,7 +13,16 @@ from src.interview_system import InterviewSystem
 from src.extended_interview_system import ExtendedInterviewSystem
 from src.matching_engine import MatchingEngine
 from src.refined_matching_engine import RefinedMatchingEngine
-from src.database import SessionLocal, StudentProfileDB, FeedbackDB, QuizResultDB, SavedQuizAttemptDB, init_db
+from src.database import (
+    SessionLocal,
+    StudentProfileDB,
+    FeedbackDB,
+    QuizResultDB,
+    SavedQuizAttemptDB,
+    PaymentDB,
+    init_db,
+    ensure_payment_schema,
+)
 from src.models import UserProfile, UniversityMatch, ProgramMatch
 from src.auth import (
     hash_password, 
@@ -38,6 +47,7 @@ app.add_middleware(
 @app.on_event("startup")
 async def startup_event():
     init_db()
+    ensure_payment_schema()
 
 
 # Request/Response Models
@@ -71,6 +81,41 @@ class SaveQuizAttemptRequest(BaseModel):
     score_percentage: float
     matched_universities: List[str]
     quiz_answers: Dict[str, Any]
+
+
+class PaymentCreateRequest(BaseModel):
+    package_key: str
+    package_name: str
+    amount_eur: float
+    currency: str = "EUR"
+
+
+class PaymentResponse(BaseModel):
+    id: int
+    invoice_number: str
+    package_key: str
+    package_name: str
+    amount_eur: float
+    currency: str
+    status: str
+    created_at: str
+    updated_at: str
+    paid_at: Optional[str] = None
+
+
+def serialize_payment(payment: PaymentDB) -> Dict[str, Any]:
+    return {
+        "id": payment.id,
+        "invoice_number": payment.invoice_number,
+        "package_key": payment.package_key,
+        "package_name": payment.package_name,
+        "amount_eur": payment.amount_eur,
+        "currency": payment.currency,
+        "status": payment.status,
+        "created_at": payment.created_at,
+        "updated_at": payment.updated_at,
+        "paid_at": payment.paid_at,
+    }
 
 
 class QuestionResponse(BaseModel):
@@ -126,6 +171,8 @@ class UserResponse(BaseModel):
     name: Optional[str]
     is_verified: bool
     created_at: Optional[str]
+    package_level: Optional[str] = None
+    package_status: Optional[str] = None
 
 
 # Helper Functions
@@ -299,7 +346,9 @@ async def register(request: RegisterRequest):
                 "username": new_user.username,
                 "email": new_user.email,
                 "name": new_user.name,
-                "is_verified": new_user.is_verified
+                "is_verified": new_user.is_verified,
+                "package_level": new_user.package_level,
+                "package_status": new_user.package_status,
             }
         }
     finally:
@@ -347,7 +396,9 @@ async def login(request: LoginRequest):
                 "username": user.username,
                 "email": user.email,
                 "name": user.name,
-                "is_verified": user.is_verified
+                "is_verified": user.is_verified,
+                "package_level": user.package_level,
+                "package_status": user.package_status,
             }
         }
     finally:
@@ -369,8 +420,124 @@ async def get_current_user(user_id: int = Depends(get_current_user_id)):
             "email": user.email,
             "name": user.name,
             "is_verified": user.is_verified,
-            "created_at": user.created_at
+            "created_at": user.created_at,
+            "package_level": user.package_level,
+            "package_status": user.package_status,
         }
+    finally:
+        db.close()
+
+
+@app.get("/api/payments/me")
+async def get_my_payments(user_id: int = Depends(get_current_user_id)):
+    """List payments/invoices for the current user."""
+    db = SessionLocal()
+    try:
+        payments = (
+            db.query(PaymentDB)
+            .filter(PaymentDB.student_profile_id == user_id)
+            .order_by(PaymentDB.created_at.desc())
+            .all()
+        )
+        return {"payments": [serialize_payment(p) for p in payments]}
+    finally:
+        db.close()
+
+
+@app.post("/api/payments", response_model=PaymentResponse)
+async def create_payment(request: PaymentCreateRequest, user_id: int = Depends(get_current_user_id)):
+    """Create a pending payment/invoice for a selected package."""
+    db = SessionLocal()
+    try:
+        user = db.query(StudentProfileDB).filter(StudentProfileDB.id == user_id).first()
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+
+        invoice_number = f"INV-{datetime.utcnow().strftime('%Y%m%d%H%M%S')}-{user_id}"
+        now_ts = datetime.utcnow().isoformat()
+
+        payment = PaymentDB(
+            student_profile_id=user_id,
+            invoice_number=invoice_number,
+            package_key=request.package_key,
+            package_name=request.package_name,
+            amount_eur=request.amount_eur,
+            currency=request.currency,
+            status="pending",
+            created_at=now_ts,
+            updated_at=now_ts,
+        )
+
+        db.add(payment)
+        db.commit()
+        db.refresh(payment)
+
+        return serialize_payment(payment)
+    finally:
+        db.close()
+
+
+@app.post("/api/payments/{payment_id}/confirm", response_model=PaymentResponse)
+async def confirm_payment(payment_id: int, user_id: int = Depends(get_current_user_id)):
+    """Confirm payment and upgrade the user's package level."""
+    db = SessionLocal()
+    try:
+        payment = (
+            db.query(PaymentDB)
+            .filter(PaymentDB.id == payment_id, PaymentDB.student_profile_id == user_id)
+            .first()
+        )
+        if not payment:
+            raise HTTPException(status_code=404, detail="Payment not found")
+
+        if payment.status == "paid":
+            return serialize_payment(payment)
+
+        now_ts = datetime.utcnow().isoformat()
+        payment.status = "paid"
+        payment.paid_at = now_ts
+        payment.updated_at = now_ts
+
+        user = db.query(StudentProfileDB).filter(StudentProfileDB.id == user_id).first()
+        if user:
+            user.package_level = payment.package_key
+            user.package_status = "active"
+            user.updated_at = now_ts
+
+        db.commit()
+        db.refresh(payment)
+
+        return serialize_payment(payment)
+    finally:
+        db.close()
+
+
+@app.post("/api/subscription/cancel")
+async def cancel_subscription(user_id: int = Depends(get_current_user_id)):
+    """Cancel current subscription and reset to free package."""
+    db = SessionLocal()
+    try:
+        user = db.query(StudentProfileDB).filter(StudentProfileDB.id == user_id).first()
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+
+        now_ts = datetime.utcnow().isoformat()
+        user.package_level = None
+        user.package_status = None
+        user.updated_at = now_ts
+
+        db.commit()
+        db.refresh(user)
+
+        return {
+            "status": "success",
+            "message": "Subscription cancelled. Reset to free package.",
+            "package_level": user.package_level,
+            "package_status": user.package_status
+        }
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
     finally:
         db.close()
 

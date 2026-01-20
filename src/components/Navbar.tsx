@@ -1,9 +1,11 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, GraduationCap, User } from "lucide-react";
+import { Menu, X, GraduationCap, User, Badge } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
+import { plans } from "@/data/plans";
+import { BenefitsModal } from "@/components/BenefitsModal";
 
 const navLinks = [
   { href: "/", label: "Acasă" },
@@ -13,9 +15,32 @@ const navLinks = [
   { href: "/contact", label: "Contact" },
 ];
 
+const packageLevels: Record<string, { label: string; color: string }> = {
+  choose_confidently: { label: "Level 1", color: "bg-blue-500" },
+  prepare_to_apply: { label: "Level 2", color: "bg-purple-500" },
+  apply_with_support: { label: "Level 3", color: "bg-amber-500" },
+};
+
+const getPackageDisplay = (pkg?: string | null) => {
+  if (!pkg) {
+    return { label: "Free", color: "bg-gray-400", name: "Gratuit" };
+  }
+  const plan = plans.find(p => p.key === pkg);
+  if (plan) {
+    return { 
+      label: pkg === "choose_confidently" ? "L1" : pkg === "prepare_to_apply" ? "L2" : "L3",
+      color: pkg === "choose_confidently" ? "bg-blue-500" : pkg === "prepare_to_apply" ? "bg-purple-500" : "bg-amber-500",
+      name: plan.name
+    };
+  }
+  return { label: "Free", color: "bg-gray-400", name: "Gratuit" };
+};
+
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [showBenefitsModal, setShowBenefitsModal] = useState(false);
   const { isAuthenticated, user } = useAuth();
+  const packageDisplay = getPackageDisplay(user?.package_level);
 
   return (
     <motion.nav
@@ -26,19 +51,47 @@ const Navbar = () => {
     >
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16 md:h-20">
-          {/* Logo */}
-          <Link to="/" className="flex items-center gap-2 group">
-            <motion.div 
-              className="w-10 h-10 rounded-xl bg-gradient-primary flex items-center justify-center shadow-md group-hover:shadow-glow transition-shadow duration-300"
-              whileHover={{ rotate: [0, -5, 5, -5, 5, 0] }}
-              transition={{ duration: 0.5 }}
-            >
-              <GraduationCap className="w-6 h-6 text-primary-foreground" />
-            </motion.div>
-            <span className="font-display font-bold text-xl text-foreground">
-              Uni<span className="text-primary">Hub</span>
-            </span>
-          </Link>
+          {/* Package and Logo */}
+          <div className="flex items-center gap-3 relative">
+            <div className="relative group">
+              <button
+                onClick={() => setShowBenefitsModal(!showBenefitsModal)}
+                title={packageDisplay.name}
+                className="hidden md:flex items-center group"
+              >
+                {/* Gradient Hat Icon with Package Color */}
+                <motion.div 
+                  className={`w-10 h-10 rounded-xl ${packageDisplay.color} flex items-center justify-center shadow-md transition-all duration-300`}
+                  whileHover={{ rotate: [0, -5, 5, -5, 5, 0], scale: 1.1 }}
+                  transition={{ duration: 0.5 }}
+                >
+                  <GraduationCap className="w-6 h-6 text-white" />
+                </motion.div>
+              </button>
+              
+              {/* Hover Tooltip - Package Name with Fade */}
+              <motion.div
+                initial={{ opacity: 0, y: -5 }}
+                whileHover={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.2 }}
+                className="absolute left-0 -bottom-8 bg-gray-900 text-white text-xs px-2 py-1 rounded whitespace-nowrap pointer-events-none opacity-0 group-hover:opacity-100"
+              >
+                {packageDisplay.name}
+              </motion.div>
+              
+              <BenefitsModal 
+                open={showBenefitsModal} 
+                onOpenChange={setShowBenefitsModal} 
+                packageKey={user?.package_level} 
+              />
+            </div>
+            
+            <Link to="/" className="flex items-center gap-2 group">
+              <span className="font-display font-bold text-xl text-foreground">
+                Uni<span className="text-primary">Hub</span>
+              </span>
+            </Link>
+          </div>
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-1">
@@ -108,12 +161,29 @@ const Navbar = () => {
                 </Link>
               ))}
               <div className="pt-4 space-y-2 border-t border-border/50">
-                <Link to="/cont" onClick={() => setIsOpen(false)}>
-                  <Button variant="outline" className="w-full gap-2">
-                    <User className="w-4 h-4" />
-                    Contul meu
+                <Link to="/pachete" onClick={() => setIsOpen(false)}>
+                  <Button variant="secondary" className="w-full gap-2">
+                    <div className={`w-6 h-6 rounded-full ${packageDisplay.color} flex items-center justify-center text-white text-xs font-bold`}>
+                      {packageDisplay.label === "Free" ? "F" : packageDisplay.label}
+                    </div>
+                    <span className="flex-1 text-left">{packageDisplay.name}</span>
                   </Button>
                 </Link>
+                {isAuthenticated ? (
+                  <Link to="/cont" onClick={() => setIsOpen(false)}>
+                    <Button variant="outline" className="w-full gap-2">
+                      <User className="w-4 h-4" />
+                      {user?.username || 'Contul meu'}
+                    </Button>
+                  </Link>
+                ) : (
+                  <Link to="/login" onClick={() => setIsOpen(false)}>
+                    <Button variant="outline" className="w-full gap-2">
+                      <User className="w-4 h-4" />
+                      Autentificare
+                    </Button>
+                  </Link>
+                )}
                 <Link to="/quiz" onClick={() => setIsOpen(false)}>
                   <Button variant="default" className="w-full">
                     Începe Quiz

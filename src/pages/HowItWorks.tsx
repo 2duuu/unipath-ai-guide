@@ -3,6 +3,7 @@ import { FileText, Brain, Database, Target, Gift, ArrowRight } from "lucide-reac
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
 
 const steps = [
   {
@@ -43,6 +44,8 @@ const steps = [
 ];
 
 const HowItWorks = () => {
+  const navigate = useNavigate();
+  
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
@@ -123,7 +126,7 @@ const HowItWorks = () => {
             viewport={{ once: true }}
             className="text-center mt-16"
           >
-            <Button variant="accent" size="xl" className="group">
+            <Button variant="accent" size="xl" className="group" onClick={() => navigate('/pachete')}>
               Începe testul gratuit
               <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </Button>
