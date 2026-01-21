@@ -7,10 +7,13 @@ from datetime import datetime
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import Session
 
-from src.database import SessionLocal, UniversityDB, ProgramDB, CourseDB
+from .scraper_database import ScraperSessionLocal, ScrapedUniversity, ScrapedProgram, ScrapedCourse, init_scraper_db
 from .validators import DataValidator
 
 logger = logging.getLogger(__name__)
+
+# Initialize scraper database on module import
+init_scraper_db()
 
 
 class DatabaseInserter:
@@ -32,7 +35,7 @@ class DatabaseInserter:
         Args:
             db: SQLAlchemy session. If None, creates a new session.
         """
-        self.db = db or SessionLocal()
+        self.db = db or ScraperSessionLocal()
         self.own_session = db is None  # Track if we own the session
         
         self.stats = {
@@ -73,9 +76,9 @@ class DatabaseInserter:
                     continue
                 
                 # Check if university already exists
-                existing = self.db.query(UniversityDB).filter(
-                    (UniversityDB.website == uni_data.get('website')) |
-                    (UniversityDB.name == uni_data.get('name'))
+                existing = self.db.query(ScrapedUniversity).filter(
+                    (ScrapedUniversity.website == uni_data.get('website')) |
+                    (ScrapedUniversity.name == uni_data.get('name'))
                 ).first()
                 
                 if existing:
@@ -140,7 +143,7 @@ class DatabaseInserter:
                 
                 # Verify university exists
                 university_id = prog_data.get('university_id')
-                university = self.db.query(UniversityDB).filter(UniversityDB.id == university_id).first()
+                university = self.db.query(ScrapedUniversity).filter(ScrapedUniversity.id == university_id).first()
                 
                 if not university:
                     logger.error(f"University {university_id} not found for program {prog_data.get('name')}")
@@ -148,9 +151,9 @@ class DatabaseInserter:
                     continue
                 
                 # Check if program already exists
-                existing = self.db.query(ProgramDB).filter(
-                    ProgramDB.university_id == university_id,
-                    ProgramDB.name == prog_data.get('name')
+                existing = self.db.query(ScrapedProgram).filter(
+                    ScrapedProgram.university_id == university_id,
+                    ScrapedProgram.name == prog_data.get('name')
                 ).first()
                 
                 if existing:
@@ -214,7 +217,7 @@ class DatabaseInserter:
                 
                 # Verify program exists
                 program_id = course_data.get('program_id')
-                program = self.db.query(ProgramDB).filter(ProgramDB.id == program_id).first()
+                program = self.db.query(ScrapedProgram).filter(ScrapedProgram.id == program_id).first()
                 
                 if not program:
                     logger.error(f"Program {program_id} not found for course {course_data.get('name')}")
@@ -222,9 +225,9 @@ class DatabaseInserter:
                     continue
                 
                 # Check if course already exists
-                existing = self.db.query(CourseDB).filter(
-                    CourseDB.program_id == program_id,
-                    CourseDB.name == course_data.get('name')
+                existing = self.db.query(ScrapedCourse).filter(
+                    ScrapedCourse.program_id == program_id,
+                    ScrapedCourse.name == course_data.get('name')
                 ).first()
                 
                 if existing:
@@ -272,45 +275,38 @@ class DatabaseInserter:
     
     def _insert_university(self, data: Dict[str, Any]):
         """Insert new university."""
-        university = UniversityDB(
+        from datetime import datetime
+        university = ScrapedUniversity(
             name=data.get('name'),
             name_en=data.get('name_en'),
             name_ro=data.get('name_ro', data.get('name')),
             country=data.get('country', 'Romania'),
             city=data.get('city'),
             address=data.get('address'),
-            location_type=data.get('location_type'),
-            acceptance_rate=data.get('acceptance_rate'),
-            avg_gpa=data.get('avg_gpa'),
-            avg_bac_score=data.get('avg_bac_score'),
-            sat_min=data.get('sat_min'),
-            sat_max=data.get('sat_max'),
-            act_min=data.get('act_min'),
-            act_max=data.get('act_max'),
+            website=data.get('website'),
+            email=data.get('email'),
+            phone=data.get('phone'),
+            university_type=data.get('type'),
+            is_accredited=data.get('is_accredited', True),
+            accreditation_body=data.get('accreditation_body'),
+            total_students=data.get('student_count') or data.get('total_students'),
+            international_students=data.get('international_students'),
+            faculty_count=data.get('faculty_count'),
             tuition_annual_ron=data.get('tuition_annual_ron'),
             tuition_annual_eur=data.get('tuition_annual_eur'),
-            tuition_annual_usd=data.get('tuition_annual_usd'),
-            tuition_eu=data.get('tuition_eu'),
-            tuition_non_eu=data.get('tuition_non_eu'),
-            size=data.get('size'),
-            student_count=data.get('student_count'),
+            ranking_national=data.get('national_rank'),
+            ranking_international=data.get('international_rank'),
             description=data.get('description'),
-            description_en=data.get('description_en'),
-            website=data.get('website'),
-            type=data.get('type'),
-            founded_year=data.get('founded_year'),
-            national_rank=data.get('national_rank'),
-            international_rank=data.get('international_rank'),
-            languages_offered=data.get('languages_offered'),
-            english_programs=data.get('english_programs', False),
-            application_requirements=data.get('application_requirements'),
-            deadlines=data.get('deadlines'),
-            notable_features=data.get('notable_features'),
+            facilities=data.get('facilities'),
+            programs_offered=data.get('programs_offered'),
+            source_url=data.get('source_url') or data.get('website'),
+            scraped_at=datetime.now().isoformat(),
+            data_quality_score=data.get('quality_score', 1.0),
         )
         
         self.db.add(university)
     
-    def _update_university(self, existing: UniversityDB, data: Dict[str, Any]):
+    def _update_university(self, existing: ScrapedUniversity, data: Dict[str, Any]):
         """Update existing university with new data."""
         # Only update non-null values
         for key, value in data.items():
@@ -319,25 +315,34 @@ class DatabaseInserter:
     
     def _insert_program(self, data: Dict[str, Any]):
         """Insert new program."""
-        program = ProgramDB(
+        from datetime import datetime
+        program = ScrapedProgram(
             university_id=data.get('university_id'),
             name=data.get('name'),
             name_en=data.get('name_en'),
-            field=data.get('field'),
-            degree_level=data.get('degree_level'),
+            name_ro=data.get('name_ro', data.get('name')),
+            degree_type=data.get('degree_level') or data.get('degree_type'),
+            field_of_study=data.get('field') or data.get('field_of_study'),
+            specialization=data.get('specialization'),
             duration_years=data.get('duration_years'),
-            language=data.get('language'),
-            strength_rating=data.get('strength_rating'),
-            accreditation=data.get('accreditation'),
-            specific_requirements=data.get('specific_requirements'),
-            min_bac_score=data.get('min_bac_score'),
-            required_subjects=data.get('required_subjects'),
+            credits=data.get('credits'),
+            language=data.get('language', 'Romanian'),
+            admission_requirements=data.get('admission_requirements') or data.get('specific_requirements'),
+            total_places=data.get('total_places'),
+            tuition_annual_ron=data.get('tuition_annual_ron'),
+            tuition_annual_eur=data.get('tuition_annual_eur'),
+            career_prospects=data.get('career_prospects'),
+            employment_rate=data.get('employment_rate'),
             description=data.get('description'),
+            curriculum=data.get('curriculum'),
+            source_url=data.get('source_url'),
+            scraped_at=datetime.now().isoformat(),
+            data_quality_score=data.get('quality_score', 1.0),
         )
         
         self.db.add(program)
     
-    def _update_program(self, existing: ProgramDB, data: Dict[str, Any]):
+    def _update_program(self, existing: ScrapedProgram, data: Dict[str, Any]):
         """Update existing program with new data."""
         for key, value in data.items():
             if value is not None and hasattr(existing, key):
@@ -345,7 +350,7 @@ class DatabaseInserter:
     
     def _insert_course(self, data: Dict[str, Any]):
         """Insert new course."""
-        course = CourseDB(
+        course = ScrapedCourse(
             program_id=data.get('program_id'),
             name=data.get('name'),
             year_of_study=data.get('year_of_study'),
@@ -353,7 +358,7 @@ class DatabaseInserter:
         
         self.db.add(course)
     
-    def _update_course(self, existing: CourseDB, data: Dict[str, Any]):
+    def _update_course(self, existing: ScrapedCourse, data: Dict[str, Any]):
         """Update existing course with new data."""
         for key, value in data.items():
             if value is not None and hasattr(existing, key):

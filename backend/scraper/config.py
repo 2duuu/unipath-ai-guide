@@ -11,6 +11,9 @@ DATA_DIR = BACKEND_DIR / "data"
 CACHE_DIR = DATA_DIR / "scraper_cache"
 LOGS_DIR = DATA_DIR / "scraper_logs"
 
+# Scraper database - stores scraped data separately
+SCRAPER_DB_PATH = SCRAPER_DIR / "scraped_data.db"
+
 # Create directories if they don't exist
 CACHE_DIR.mkdir(parents=True, exist_ok=True)
 LOGS_DIR.mkdir(parents=True, exist_ok=True)

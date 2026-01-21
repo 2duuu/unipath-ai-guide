@@ -1,0 +1,187 @@
+{
+  "timestamp": "2026-01-21T14:54:22.033844",
+  "statistics": {
+    "universities": {
+      "inserted": 0,
+      "updated": 0,
+      "skipped": 10,
+      "failed": 0
+    },
+    "programs": {
+      "total_processed": 158,
+      "note": "Programs were inserted as they were found"
+    }
+  },
+  "quality_reports": {
+    "universities": {
+      "total_universities": 10,
+      "valid": 10,
+      "invalid": 0,
+      "validity_rate": 100.0,
+      "field_completeness": {
+        "name": {
+          "filled": 10,
+          "total": 10,
+          "percentage": 100.0
+        },
+        "name_ro": {
+          "filled": 10,
+          "total": 10,
+          "percentage": 100.0
+        },
+        "name_en": {
+          "filled": 10,
+          "total": 10,
+          "percentage": 100.0
+        },
+        "website": {
+          "filled": 10,
+          "total": 10,
+          "percentage": 100.0
+        },
+        "city": {
+          "filled": 10,
+          "total": 10,
+          "percentage": 100.0
+        },
+        "country": {
+          "filled": 10,
+          "total": 10,
+          "percentage": 100.0
+        },
+        "type": {
+          "filled": 10,
+          "total": 10,
+          "percentage": 100.0
+        },
+        "founded_year": {
+          "filled": 10,
+          "total": 10,
+          "percentage": 100.0
+        },
+        "location_type": {
+          "filled": 10,
+          "total": 10,
+          "percentage": 100.0
+        },
+        "source_url": {
+          "filled": 10,
+          "total": 10,
+          "percentage": 100.0
+        },
+        "last_verified_at": {
+          "filled": 10,
+          "total": 10,
+          "percentage": 100.0
+        },
+        "data_source": {
+          "filled": 10,
+          "total": 10,
+          "percentage": 100.0
+        },
+        "description": {
+          "filled": 4,
+          "total": 7,
+          "percentage": 57.14285714285714
+        },
+        "tuition_info": {
+          "filled": 7,
+          "total": 7,
+          "percentage": 100.0
+        },
+        "contact_info": {
+          "filled": 7,
+          "total": 7,
+          "percentage": 100.0
+        },
+        "programs_links": {
+          "filled": 7,
+          "total": 7,
+          "percentage": 100.0
+        },
+        "english_programs": {
+          "filled": 7,
+          "total": 7,
+          "percentage": 100.0
+        }
+      },
+      "common_errors": {},
+      "timestamp": "2026-01-21T14:53:27.814678"
+    },
+    "programs": {
+      "total_programs": 158,
+      "valid": 158,
+      "invalid": 0,
+      "validity_rate": 100.0,
+      "field_completeness": {
+        "university_id": {
+          "filled": 158,
+          "total": 158,
+          "percentage": 100.0
+        },
+        "name": {
+          "filled": 158,
+          "total": 158,
+          "percentage": 100.0
+        },
+        "name_en": {
+          "filled": 58,
+          "total": 158,
+          "percentage": 36.708860759493675
+        },
+        "field": {
+          "filled": 158,
+          "total": 158,
+          "percentage": 100.0
+        },
+        "degree_level": {
+          "filled": 158,
+          "total": 158,
+          "percentage": 100.0
+        },
+        "duration_years": {
+          "filled": 158,
+          "total": 158,
+          "percentage": 100.0
+        },
+        "language": {
+          "filled": 158,
+          "total": 158,
+          "percentage": 100.0
+        },
+        "source_url": {
+          "filled": 157,
+          "total": 158,
+          "percentage": 99.36708860759494
+        },
+        "last_verified_at": {
+          "filled": 158,
+          "total": 158,
+          "percentage": 100.0
+        },
+        "description": {
+          "filled": 78,
+          "total": 78,
+          "percentage": 100.0
+        }
+      },
+      "field_distribution": {
+        "other": 107,
+        "education": 4,
+        "engineering": 12,
+        "stem": 7,
+        "business": 1,
+        "social_sciences": 3,
+        "law": 2,
+        "arts_humanities": 11,
+        "health": 11
+      },
+      "common_errors": {},
+      "timestamp": "2026-01-21T14:54:22.031257"
+    }
+  },
+  "universities_count": 10,
+  "programs_count": 158,
+  "courses_count": 0,
+  "errors": []
+}

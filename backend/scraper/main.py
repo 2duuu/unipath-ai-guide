@@ -23,7 +23,7 @@ from .university_scrapers import RomanianUniversityListScraper, UniversityDetail
 from .program_scrapers import UniversityProgramScraper, ProgramCourseScraper
 from .validators import DataQualityChecker
 from .db_inserter import DatabaseInserter
-from src.database import SessionLocal, UniversityDB, ProgramDB
+from .scraper_database import ScraperSessionLocal, ScrapedUniversity, ScrapedProgram
 
 # Configure logging
 logging.basicConfig(
@@ -163,10 +163,10 @@ class ScraperPipeline:
         """Scrape programs from all universities."""
         logger.info("Scraping programs from universities...")
         
-        # Get universities from database
-        db = SessionLocal()
+        # Get universities from scraper database
+        db = ScraperSessionLocal()
         try:
-            universities = db.query(UniversityDB).all()
+            universities = db.query(ScrapedUniversity).all()
             logger.info(f"Found {len(universities)} universities in database")
             
             all_programs = []
@@ -193,6 +193,13 @@ class ScraperPipeline:
                         programs = result.data
                         logger.info(f"  Found {len(programs)} programs")
                         all_programs.extend(programs)
+                        
+                        # Insert programs immediately after finding them
+                        if programs and not self.dry_run:
+                            logger.info(f"  Inserting {len(programs)} programs to database...")
+                            with DatabaseInserter() as inserter:
+                                stats = inserter.insert_programs(programs, update_existing=self.update)
+                                logger.info(f"  Inserted: {stats['inserted']}, Updated: {stats['updated']}, Skipped: {stats['skipped']}")
                     else:
                         logger.warning(f"  Failed: {result.error}")
                 
@@ -207,12 +214,12 @@ class ScraperPipeline:
                 self.results['quality_reports']['programs'] = quality_report
                 logger.info(f"Program quality score: {quality_report['validity_rate']:.1f}%")
                 
-                # Insert to database
+                # Programs already inserted, just update statistics
                 if not self.dry_run:
-                    logger.info("Inserting programs to database...")
-                    with DatabaseInserter() as inserter:
-                        stats = inserter.insert_programs(all_programs, update_existing=self.update)
-                        self.results['statistics']['programs'] = stats
+                    self.results['statistics']['programs'] = {
+                        'total_processed': len(all_programs),
+                        'note': 'Programs were inserted as they were found'
+                    }
             
         finally:
             db.close()
@@ -221,10 +228,10 @@ class ScraperPipeline:
         """Scrape courses from all programs."""
         logger.info("Scraping courses from programs...")
         
-        # Get programs from database
-        db = SessionLocal()
+        # Get programs from scraper database
+        db = ScraperSessionLocal()
         try:
-            programs = db.query(ProgramDB).all()
+            programs = db.query(ScrapedProgram).all()
             logger.info(f"Found {len(programs)} programs in database")
             
             all_courses = []
