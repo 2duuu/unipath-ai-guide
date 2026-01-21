@@ -68,6 +68,9 @@ class SaveQuizAttemptRequest(BaseModel):
     quiz_type: str  # "initial" or "extended"
     num_questions: int
     main_match: str
+    score_percentage: float
+    matched_universities: List[str]
+    quiz_answers: Dict[str, Any]
 
 
 class ClaimPackageRequest(BaseModel):

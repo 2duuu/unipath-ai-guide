@@ -1,10 +1,21 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Search, Filter, MapPin, Users, Award, ArrowRight, Loader2, X } from "lucide-react";
+import { Search, Filter, MapPin, Users, Award, ArrowRight, Loader2, X, Lock, Sparkles } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { getPackageInfo } from "@/services/packages";
+import { PackageInfo, PackageTier } from "@/lib/packages";
+import { useNavigate } from "react-router-dom";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 interface University {
   id: number;
@@ -36,6 +47,7 @@ const fieldTranslations: Record<string, string> = {
 };
 
 const Faculties = () => {
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCity, setSelectedCity] = useState("Toate");
   const [selectedDomain, setSelectedDomain] = useState("Toate");
@@ -43,6 +55,9 @@ const Faculties = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedUniversity, setSelectedUniversity] = useState<University | null>(null);
+  const [packageInfo, setPackageInfo] = useState<PackageInfo | null>(null);
+  const [packageLoading, setPackageLoading] = useState(true);
+  const [showLockedDialog, setShowLockedDialog] = useState(false);
 
   // Fetch universities from API
   useEffect(() => {
@@ -66,6 +81,47 @@ const Faculties = () => {
 
     fetchUniversities();
   }, []);
+
+  // Fetch package info
+  useEffect(() => {
+    const fetchPackageInfo = async () => {
+      try {
+        setPackageLoading(true);
+        const info = await getPackageInfo();
+        setPackageInfo(info);
+      } catch (err) {
+        console.error('Error fetching package info:', err);
+        // Set free tier as default if not logged in or error
+        setPackageInfo({
+          package_tier: PackageTier.FREE,
+          purchased_at: null,
+          expires_at: null,
+          features: []
+        });
+      } finally {
+        setPackageLoading(false);
+      }
+    };
+
+    fetchPackageInfo();
+  }, []);
+
+  const hasActivePackage = packageInfo && packageInfo.package_tier !== PackageTier.FREE;
+
+  const handleAICompatibility = (university: University) => {
+    if (!hasActivePackage) {
+      // Show locked dialog instead of direct redirect
+      setShowLockedDialog(true);
+    } else {
+      // TODO: Implement AI compatibility feature
+      alert(`Funcția de compatibilitate AI pentru ${university.name} va fi disponibilă în curând!`);
+    }
+  };
+
+  const handleUpgradeClick = () => {
+    setShowLockedDialog(false);
+    navigate('/pachete');
+  };
 
   // Get unique cities from universities
   const cities = ["Toate", ...Array.from(new Set(universities.map(u => u.city).filter(Boolean)))].sort();
@@ -233,14 +289,34 @@ const Faculties = () => {
                       </p>
                     )}
 
-                    <Button 
-                      variant="outline" 
-                      className="w-full group-hover:bg-primary group-hover:text-primary-foreground transition-colors"
-                      onClick={() => setSelectedUniversity(university)}
-                    >
-                      Vezi detalii
-                      <ArrowRight className="w-4 h-4 ml-2" />
-                    </Button>
+                    <div className="flex flex-col gap-2">
+                      <Button 
+                        variant="outline" 
+                        className="w-full group-hover:bg-primary group-hover:text-primary-foreground transition-colors"
+                        onClick={() => setSelectedUniversity(university)}
+                      >
+                        Vezi detalii
+                        <ArrowRight className="w-4 h-4 ml-2" />
+                      </Button>
+                      
+                      <Button 
+                        variant={hasActivePackage ? "default" : "secondary"}
+                        className={`w-full relative ${!hasActivePackage ? 'opacity-60' : ''}`}
+                        onClick={() => handleAICompatibility(university)}
+                        disabled={packageLoading}
+                      >
+                        {!hasActivePackage && (
+                          <Lock className="w-4 h-4 mr-2" />
+                        )}
+                        {hasActivePackage && (
+                          <Sparkles className="w-4 h-4 mr-2" />
+                        )}
+                        Vezi compatibilitate AI
+                        {!hasActivePackage && (
+                          <span className="ml-2 text-xs opacity-75">(Premium)</span>
+                        )}
+                      </Button>
+                    </div>
                   </motion.div>
                 ))}
               </div>
@@ -395,6 +471,30 @@ const Faculties = () => {
           </motion.div>
         </div>
       )}
+
+      {/* Locked Feature Dialog */}
+      <Dialog open={showLockedDialog} onOpenChange={setShowLockedDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <div className="flex items-center justify-center w-12 h-12 mx-auto mb-4 rounded-full bg-amber-500/10">
+              <Lock className="w-6 h-6 text-amber-600" />
+            </div>
+            <DialogTitle className="text-center">Funcție Premium Blocată</DialogTitle>
+            <DialogDescription className="text-center pt-2">
+              Funcția de compatibilitate AI este disponibilă doar pentru utilizatorii cu un pachet premium. 
+              Upgrade-ează acum pentru a accesa această funcție și multe altele!
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex-col sm:flex-col gap-2 sm:gap-2">
+            <Button onClick={handleUpgradeClick} className="w-full">
+              Upgrade la Premium
+            </Button>
+            <Button variant="outline" onClick={() => setShowLockedDialog(false)} className="w-full">
+              Poate mai târziu
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

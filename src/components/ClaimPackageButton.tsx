@@ -114,6 +114,9 @@ export function ClaimPackageButton({
       // Claim package after "payment" success
       const result = await claimPackage(packageTier);
       
+      // Dispatch event to update navbar
+      window.dispatchEvent(new CustomEvent('packageUpdated'));
+      
       setShowSuccessDialog(true);
       
       toast({

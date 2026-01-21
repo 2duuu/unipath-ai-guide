@@ -87,6 +87,8 @@ export default function Quiz() {
   const handleNext = () => {
     if (currentQuestionIndex < questions.length - 1) {
       setCurrentQuestionIndex(prev => prev + 1);
+      // Scroll to top of the page
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     } else {
       submitQuiz();
     }
@@ -95,6 +97,8 @@ export default function Quiz() {
   const handlePrevious = () => {
     if (currentQuestionIndex > 0) {
       setCurrentQuestionIndex(prev => prev - 1);
+      // Scroll to top of the page
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
 
@@ -154,6 +158,9 @@ export default function Quiz() {
         matched_universities: matchedList,
         quiz_answers: answers
       });
+
+      // Dispatch event to refresh quiz results in Account page
+      window.dispatchEvent(new CustomEvent('quizSaved'));
 
       alert('Quiz saved to your profile!');
     } catch (err) {

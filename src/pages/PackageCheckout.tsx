@@ -177,6 +177,9 @@ const PackageCheckout = () => {
       // Claim package
       const result = await claimPackage(packageTierParam);
 
+      // Dispatch event to update navbar
+      window.dispatchEvent(new CustomEvent('packageUpdated'));
+
       setShowSuccessDialog(true);
 
       toast({

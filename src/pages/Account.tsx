@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useNavigate, Link } from "react-router-dom";
-import { User, FileText, Calendar, CreditCard, LogOut, Download, ChevronRight, Loader2, Package } from "lucide-react";
+import { User, FileText, Calendar, CreditCard, LogOut, Download, ChevronRight, Loader2, Package, Lock, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -13,6 +13,17 @@ import { useAuth } from "@/contexts/AuthContext";
 import { getUserQuizResults, getUserQuizAttempts } from "@/services/api";
 import { PackageInfoCard } from "@/components/PackageInfoCard";
 import { getUserInvoices, type Invoice } from "@/services/invoices";
+import { getPackageInfo, claimPackage } from "@/services/packages";
+import { PackageInfo, PackageTier } from "@/lib/packages";
+import { useToast } from "@/hooks/use-toast";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 const sidebarItems = [
   { id: "profile", label: "Profilul Meu", icon: User },
@@ -60,6 +71,11 @@ const Account = () => {
   const [refreshKey, setRefreshKey] = useState(0);
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [loadingInvoices, setLoadingInvoices] = useState(false);
+  const [packageInfo, setPackageInfo] = useState<PackageInfo | null>(null);
+  const [showLockedDialog, setShowLockedDialog] = useState(false);
+  const [showRevertDialog, setShowRevertDialog] = useState(false);
+  const [isReverting, setIsReverting] = useState(false);
+  const { toast } = useToast();
 
   // Redirect to login if not authenticated
   useEffect(() => {
@@ -73,8 +89,35 @@ const Account = () => {
     if (isAuthenticated && !loading) {
       fetchQuizResults();
       fetchInvoices();
+      fetchPackageInfo();
     }
+
+    // Listen for quiz save events
+    const handleQuizSaved = () => {
+      fetchQuizResults();
+    };
+
+    window.addEventListener('quizSaved', handleQuizSaved);
+
+    return () => {
+      window.removeEventListener('quizSaved', handleQuizSaved);
+    };
   }, [isAuthenticated, loading]);
+
+  const fetchPackageInfo = async () => {
+    try {
+      const info = await getPackageInfo();
+      setPackageInfo(info);
+    } catch (error) {
+      console.error('Failed to fetch package info:', error);
+      setPackageInfo({
+        package_tier: PackageTier.FREE,
+        purchased_at: null,
+        expires_at: null,
+        features: []
+      });
+    }
+  };
 
   const fetchQuizResults = async () => {
     setLoadingQuizResults(true);
@@ -107,6 +150,51 @@ const Account = () => {
   const handleLogout = () => {
     logout();
     navigate('/');
+  };
+
+  const hasActivePackage = packageInfo && packageInfo.package_tier !== PackageTier.FREE;
+
+  const handleDownloadPDF = (attemptId: number) => {
+    if (!hasActivePackage) {
+      setShowLockedDialog(true);
+    } else {
+      // TODO: Implement PDF download
+      alert('Descărcare PDF va fi implementată în curând!');
+    }
+  };
+
+  const handleUpgradeClick = () => {
+    setShowLockedDialog(false);
+    navigate('/pachete');
+  };
+
+  const handleRevertToFree = async () => {
+    setIsReverting(true);
+    try {
+      await claimPackage(PackageTier.FREE);
+      
+      // Dispatch event to update navbar
+      window.dispatchEvent(new CustomEvent('packageUpdated'));
+      
+      // Refresh package info
+      await fetchPackageInfo();
+      setRefreshKey(prev => prev + 1);
+      
+      toast({
+        title: 'Pachet Actualizat',
+        description: 'Ai revenit cu succes la pachetul gratuit.',
+      });
+      
+      setShowRevertDialog(false);
+    } catch (error) {
+      toast({
+        title: 'Eroare',
+        description: 'Nu am putut reveni la pachetul gratuit. Încearcă din nou.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsReverting(false);
+    }
   };
 
   // Show loading spinner while checking auth
@@ -317,9 +405,17 @@ const Account = () => {
                                       </ul>
                                     </div>
                                   )}
-                                  <Button className="mt-4 gap-2">
-                                    <Download className="w-4 h-4" />
+                                  <Button 
+                                    variant={hasActivePackage ? "default" : "secondary"}
+                                    className={`mt-4 gap-2 ${!hasActivePackage ? 'opacity-60' : ''}`}
+                                    onClick={() => handleDownloadPDF(result.id)}
+                                  >
+                                    {!hasActivePackage && <Lock className="w-4 h-4" />}
+                                    {hasActivePackage && <Download className="w-4 h-4" />}
                                     Descarcă Raportul Complet (PDF)
+                                    {!hasActivePackage && (
+                                      <span className="ml-2 text-xs opacity-75">(Premium)</span>
+                                    )}
                                   </Button>
                                 </CardContent>
                               </Card>
@@ -344,25 +440,40 @@ const Account = () => {
                           <div className="space-y-4">
                             {quizAttempts.map((attempt) => (
                               <Card key={attempt.id} className="border-border/50">
-                                <CardContent className="p-4 flex items-center justify-between">
-                                  <div>
-                                    <p className="font-medium">{attempt.quiz_label}</p>
-                                    <p className="text-sm text-muted-foreground">
-                                      {new Date(attempt.created_at).toLocaleDateString('ro-RO', {
-                                        year: 'numeric',
-                                        month: 'long',
-                                        day: 'numeric',
-                                        hour: '2-digit',
-                                        minute: '2-digit'
-                                      })} • {attempt.num_questions} întrebări
-                                    </p>
+                                <CardContent className="p-4">
+                                  <div className="flex items-center justify-between mb-3">
+                                    <div>
+                                      <p className="font-medium">{attempt.quiz_label}</p>
+                                      <p className="text-sm text-muted-foreground">
+                                        {new Date(attempt.created_at).toLocaleDateString('ro-RO', {
+                                          year: 'numeric',
+                                          month: 'long',
+                                          day: 'numeric',
+                                          hour: '2-digit',
+                                          minute: '2-digit'
+                                        })} • {attempt.num_questions} întrebări
+                                      </p>
+                                    </div>
+                                    <div className="text-right">
+                                      <Badge className="bg-green-100 text-green-700">
+                                        {Math.round(attempt.score_percentage)}%
+                                      </Badge>
+                                      <p className="text-sm text-muted-foreground mt-1">{attempt.main_match}</p>
+                                    </div>
                                   </div>
-                                  <div className="text-right">
-                                    <Badge className="bg-green-100 text-green-700">
-                                      {Math.round(attempt.score_percentage)}%
-                                    </Badge>
-                                    <p className="text-sm text-muted-foreground mt-1">{attempt.main_match}</p>
-                                  </div>
+                                  <Button
+                                    variant={hasActivePackage ? "default" : "secondary"}
+                                    size="sm"
+                                    className={`w-full ${!hasActivePackage ? 'opacity-60' : ''}`}
+                                    onClick={() => handleDownloadPDF(attempt.id)}
+                                  >
+                                    {!hasActivePackage && <Lock className="w-4 h-4 mr-2" />}
+                                    {hasActivePackage && <Download className="w-4 h-4 mr-2" />}
+                                    Descarcă Raport PDF
+                                    {!hasActivePackage && (
+                                      <span className="ml-2 text-xs opacity-75">(Premium)</span>
+                                    )}
+                                  </Button>
                                 </CardContent>
                               </Card>
                             ))}
@@ -389,6 +500,27 @@ const Account = () => {
                     </CardHeader>
                     <CardContent>
                       <PackageInfoCard key={refreshKey} />
+                      
+                      {packageInfo && packageInfo.package_tier !== PackageTier.FREE && (
+                        <div className="mt-6 pt-6 border-t border-border/50">
+                          <div className="flex items-start gap-3 p-4 rounded-lg bg-amber-500/10 border border-amber-500/20 mb-4">
+                            <AlertTriangle className="w-5 h-5 text-amber-600 mt-0.5 flex-shrink-0" />
+                            <div className="flex-1">
+                              <h4 className="font-semibold text-amber-900 mb-1">Revenire la Pachetul Gratuit</h4>
+                              <p className="text-sm text-amber-800">
+                                Poți reveni oricând la pachetul gratuit. Vei pierde accesul la toate funcționalitățile premium.
+                              </p>
+                            </div>
+                          </div>
+                          <Button 
+                            variant="outline" 
+                            className="w-full border-destructive/50 text-destructive hover:bg-destructive/10"
+                            onClick={() => setShowRevertDialog(true)}
+                          >
+                            Renunță la Pachetul Premium
+                          </Button>
+                        </div>
+                      )}
                     </CardContent>
                   </Card>
                   
@@ -413,23 +545,95 @@ const Account = () => {
                   <CardHeader>
                     <CardTitle>Rezultatele Tale Quiz</CardTitle>
                   </CardHeader>
-                  <CardContent className="space-y-4">
-                    {mockAIResults.map((result) => (
-                      <Card key={result.id} className="border-border/50">
-                        <CardContent className="p-6">
-                          <div className="flex items-start justify-between mb-4">
-                            <div>
-                              <p className="text-sm text-muted-foreground">{result.date}</p>
-                              <p className="text-primary font-bold text-xl mt-1">{result.mainMatch}</p>
-                            </div>
-                            <Badge className="bg-green-100 text-green-700 text-lg px-3 py-1">
-                              {result.compatibility}%
-                            </Badge>
-                          </div>
-                          <p className="text-muted-foreground">{result.description}</p>
-                        </CardContent>
-                      </Card>
-                    ))}
+                  <CardContent className="space-y-6">
+                    {loadingQuizResults ? (
+                      <div className="flex justify-center py-8">
+                        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                      </div>
+                    ) : quizAttempts.length > 0 ? (
+                      (() => {
+                        // Show only the most recent quiz attempt
+                        const latestAttempt = quizAttempts[0];
+                        return (
+                          <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.1 }}
+                          >
+                            <Card className="border-border/50 overflow-hidden hover:border-primary/30 transition-all duration-300">
+                              <CardContent className="p-6">
+                                <div className="flex items-start justify-between mb-4">
+                                  <div className="flex-1">
+                                    <p className="text-sm text-muted-foreground mb-1">
+                                      {new Date(latestAttempt.created_at).toLocaleDateString('ro-RO', {
+                                        day: 'numeric',
+                                        month: 'long',
+                                        year: 'numeric'
+                                      })}
+                                    </p>
+                                    <h3 className="text-primary font-bold text-xl mb-2">
+                                      {latestAttempt.main_match}
+                                    </h3>
+                                    <p className="text-muted-foreground text-sm mb-3">
+                                      {latestAttempt.quiz_label} • {latestAttempt.num_questions} întrebări
+                                    </p>
+                                  </div>
+                                  <Badge className="bg-green-100 text-green-700 text-lg px-4 py-2 font-bold">
+                                    {Math.round(latestAttempt.score_percentage)}%
+                                  </Badge>
+                                </div>
+                                
+                                <div className="bg-muted/50 rounded-lg p-4 mb-4">
+                                  <p className="text-foreground/80 leading-relaxed">
+                                    Profilul tău indică o puternică înclinație către această specializare, 
+                                    bazată pe răspunsurile tale la chestionarul de compatibilitate.
+                                  </p>
+                                </div>
+
+                                <div className="flex gap-2">
+                                  <Button
+                                    variant={hasActivePackage ? "default" : "secondary"}
+                                    size="sm"
+                                    className={`flex-1 ${!hasActivePackage ? 'opacity-60' : ''}`}
+                                    onClick={() => handleDownloadPDF(latestAttempt.id)}
+                                  >
+                                    {!hasActivePackage && <Lock className="w-4 h-4 mr-2" />}
+                                    {hasActivePackage && <Download className="w-4 h-4 mr-2" />}
+                                    Descarcă Raport PDF
+                                    {!hasActivePackage && (
+                                      <span className="ml-2 text-xs opacity-75">(Premium)</span>
+                                    )}
+                                  </Button>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    asChild
+                                  >
+                                    <Link to="/quiz">
+                                      <ChevronRight className="w-4 h-4 mr-2" />
+                                      Refă Testul
+                                    </Link>
+                                  </Button>
+                                </div>
+                              </CardContent>
+                            </Card>
+                          </motion.div>
+                        );
+                      })()
+                    ) : (
+                      <div className="text-center py-12">
+                        <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                          <FileText className="w-8 h-8 text-primary" />
+                        </div>
+                        <h3 className="font-semibold text-lg mb-2">Niciun quiz completat încă</h3>
+                        <p className="text-muted-foreground mb-6">
+                          Completează primul tău quiz pentru a primi recomandări personalizate
+                        </p>
+                        <Button asChild>
+                          <Link to="/quiz">Începe Quiz-ul</Link>
+                        </Button>
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
               )}
@@ -512,6 +716,76 @@ const Account = () => {
           </div>
         </div>
       </main>
+
+      {/* Locked Feature Dialog */}
+      <Dialog open={showLockedDialog} onOpenChange={setShowLockedDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <div className="flex items-center justify-center w-12 h-12 mx-auto mb-4 rounded-full bg-amber-500/10">
+              <Lock className="w-6 h-6 text-amber-600" />
+            </div>
+            <DialogTitle className="text-center">Funcție Premium Blocată</DialogTitle>
+            <DialogDescription className="text-center pt-2">
+              Descărcarea raportului PDF este disponibilă doar pentru utilizatorii cu un pachet premium. 
+              Upgrade-ează acum pentru a accesa această funcție și multe altele!
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex-col sm:flex-col gap-2 sm:gap-2">
+            <Button onClick={handleUpgradeClick} className="w-full">
+              Upgrade la Premium
+            </Button>
+            <Button variant="outline" onClick={() => setShowLockedDialog(false)} className="w-full">
+              Poate mai târziu
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Revert to Free Dialog */}
+      <Dialog open={showRevertDialog} onOpenChange={setShowRevertDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <div className="flex items-center justify-center w-12 h-12 mx-auto mb-4 rounded-full bg-destructive/10">
+              <AlertTriangle className="w-6 h-6 text-destructive" />
+            </div>
+            <DialogTitle className="text-center">Ești sigur?</DialogTitle>
+            <DialogDescription className="text-center pt-2">
+              Dacă revii la pachetul gratuit, vei pierde accesul la toate funcționalitățile premium, inclusiv:
+              <ul className="list-disc text-left mt-3 space-y-1 pl-6">
+                <li>Comparații AI avansate</li>
+                <li>Descărcare rapoarte PDF</li>
+                <li>Analiza de compatibilitate pentru universități</li>
+                <li>Chat AI nelimitat</li>
+              </ul>
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex-col sm:flex-col gap-2 sm:gap-2">
+            <Button 
+              variant="destructive" 
+              onClick={handleRevertToFree} 
+              disabled={isReverting}
+              className="w-full"
+            >
+              {isReverting ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Se procesează...
+                </>
+              ) : (
+                'Da, Renunță la Premium'
+              )}
+            </Button>
+            <Button 
+              variant="outline" 
+              onClick={() => setShowRevertDialog(false)} 
+              disabled={isReverting}
+              className="w-full"
+            >
+              Anulează
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Footer />
     </div>
