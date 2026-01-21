@@ -1,0 +1,369 @@
+"""
+Database insertion pipeline with transaction management and conflict resolution.
+"""
+import logging
+from typing import List, Dict, Any, Optional
+from datetime import datetime
+from sqlalchemy.exc import IntegrityError, SQLAlchemyError
+from sqlalchemy.orm import Session
+
+from src.database import SessionLocal, UniversityDB, ProgramDB, CourseDB
+from .validators import DataValidator
+
+logger = logging.getLogger(__name__)
+
+
+class DatabaseInserter:
+    """
+    Handles safe insertion of scraped data into the database.
+    
+    Features:
+    - Transaction management
+    - Duplicate detection and resolution
+    - Batch insertion
+    - Error recovery
+    - Logging and reporting
+    """
+    
+    def __init__(self, db: Optional[Session] = None):
+        """
+        Initialize inserter.
+        
+        Args:
+            db: SQLAlchemy session. If None, creates a new session.
+        """
+        self.db = db or SessionLocal()
+        self.own_session = db is None  # Track if we own the session
+        
+        self.stats = {
+            'universities': {'inserted': 0, 'updated': 0, 'skipped': 0, 'failed': 0},
+            'programs': {'inserted': 0, 'updated': 0, 'skipped': 0, 'failed': 0},
+            'courses': {'inserted': 0, 'updated': 0, 'skipped': 0, 'failed': 0},
+        }
+    
+    def __enter__(self):
+        return self
+    
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        if self.own_session:
+            self.db.close()
+    
+    def insert_universities(self, universities: List[Dict[str, Any]], 
+                          update_existing: bool = True) -> Dict[str, Any]:
+        """
+        Insert universities into database.
+        
+        Args:
+            universities: List of university dictionaries
+            update_existing: If True, update existing universities; if False, skip
+            
+        Returns:
+            Statistics dictionary
+        """
+        logger.info(f"Inserting {len(universities)} universities...")
+        
+        for uni_data in universities:
+            try:
+                # Validate data
+                is_valid, errors = DataValidator.validate_university(uni_data)
+                
+                if not is_valid:
+                    logger.warning(f"Invalid university data: {uni_data.get('name')} - {errors}")
+                    self.stats['universities']['failed'] += 1
+                    continue
+                
+                # Check if university already exists
+                existing = self.db.query(UniversityDB).filter(
+                    (UniversityDB.website == uni_data.get('website')) |
+                    (UniversityDB.name == uni_data.get('name'))
+                ).first()
+                
+                if existing:
+                    if update_existing:
+                        # Update existing university
+                        self._update_university(existing, uni_data)
+                        self.stats['universities']['updated'] += 1
+                        logger.info(f"Updated university: {uni_data.get('name')}")
+                    else:
+                        self.stats['universities']['skipped'] += 1
+                        logger.debug(f"Skipped existing university: {uni_data.get('name')}")
+                else:
+                    # Insert new university
+                    self._insert_university(uni_data)
+                    self.stats['universities']['inserted'] += 1
+                    logger.info(f"Inserted university: {uni_data.get('name')}")
+                
+                # Commit after each university to avoid losing all data on error
+                self.db.commit()
+                
+            except IntegrityError as e:
+                self.db.rollback()
+                logger.error(f"Integrity error inserting university {uni_data.get('name')}: {e}")
+                self.stats['universities']['failed'] += 1
+                
+            except SQLAlchemyError as e:
+                self.db.rollback()
+                logger.error(f"Database error inserting university {uni_data.get('name')}: {e}")
+                self.stats['universities']['failed'] += 1
+                
+            except Exception as e:
+                self.db.rollback()
+                logger.error(f"Unexpected error inserting university {uni_data.get('name')}: {e}")
+                self.stats['universities']['failed'] += 1
+        
+        logger.info(f"Universities insertion complete: {self.stats['universities']}")
+        return self.stats['universities']
+    
+    def insert_programs(self, programs: List[Dict[str, Any]], 
+                       update_existing: bool = True) -> Dict[str, Any]:
+        """
+        Insert programs into database.
+        
+        Args:
+            programs: List of program dictionaries
+            update_existing: If True, update existing programs; if False, skip
+            
+        Returns:
+            Statistics dictionary
+        """
+        logger.info(f"Inserting {len(programs)} programs...")
+        
+        for prog_data in programs:
+            try:
+                # Validate data
+                is_valid, errors = DataValidator.validate_program(prog_data)
+                
+                if not is_valid:
+                    logger.warning(f"Invalid program data: {prog_data.get('name')} - {errors}")
+                    self.stats['programs']['failed'] += 1
+                    continue
+                
+                # Verify university exists
+                university_id = prog_data.get('university_id')
+                university = self.db.query(UniversityDB).filter(UniversityDB.id == university_id).first()
+                
+                if not university:
+                    logger.error(f"University {university_id} not found for program {prog_data.get('name')}")
+                    self.stats['programs']['failed'] += 1
+                    continue
+                
+                # Check if program already exists
+                existing = self.db.query(ProgramDB).filter(
+                    ProgramDB.university_id == university_id,
+                    ProgramDB.name == prog_data.get('name')
+                ).first()
+                
+                if existing:
+                    if update_existing:
+                        # Update existing program
+                        self._update_program(existing, prog_data)
+                        self.stats['programs']['updated'] += 1
+                        logger.info(f"Updated program: {prog_data.get('name')}")
+                    else:
+                        self.stats['programs']['skipped'] += 1
+                        logger.debug(f"Skipped existing program: {prog_data.get('name')}")
+                else:
+                    # Insert new program
+                    self._insert_program(prog_data)
+                    self.stats['programs']['inserted'] += 1
+                    logger.info(f"Inserted program: {prog_data.get('name')}")
+                
+                self.db.commit()
+                
+            except IntegrityError as e:
+                self.db.rollback()
+                logger.error(f"Integrity error inserting program {prog_data.get('name')}: {e}")
+                self.stats['programs']['failed'] += 1
+                
+            except SQLAlchemyError as e:
+                self.db.rollback()
+                logger.error(f"Database error inserting program {prog_data.get('name')}: {e}")
+                self.stats['programs']['failed'] += 1
+                
+            except Exception as e:
+                self.db.rollback()
+                logger.error(f"Unexpected error inserting program {prog_data.get('name')}: {e}")
+                self.stats['programs']['failed'] += 1
+        
+        logger.info(f"Programs insertion complete: {self.stats['programs']}")
+        return self.stats['programs']
+    
+    def insert_courses(self, courses: List[Dict[str, Any]], 
+                      update_existing: bool = True) -> Dict[str, Any]:
+        """
+        Insert courses into database.
+        
+        Args:
+            courses: List of course dictionaries
+            update_existing: If True, update existing courses; if False, skip
+            
+        Returns:
+            Statistics dictionary
+        """
+        logger.info(f"Inserting {len(courses)} courses...")
+        
+        for course_data in courses:
+            try:
+                # Validate data
+                is_valid, errors = DataValidator.validate_course(course_data)
+                
+                if not is_valid:
+                    logger.warning(f"Invalid course data: {course_data.get('name')} - {errors}")
+                    self.stats['courses']['failed'] += 1
+                    continue
+                
+                # Verify program exists
+                program_id = course_data.get('program_id')
+                program = self.db.query(ProgramDB).filter(ProgramDB.id == program_id).first()
+                
+                if not program:
+                    logger.error(f"Program {program_id} not found for course {course_data.get('name')}")
+                    self.stats['courses']['failed'] += 1
+                    continue
+                
+                # Check if course already exists
+                existing = self.db.query(CourseDB).filter(
+                    CourseDB.program_id == program_id,
+                    CourseDB.name == course_data.get('name')
+                ).first()
+                
+                if existing:
+                    if update_existing:
+                        # Update existing course
+                        self._update_course(existing, course_data)
+                        self.stats['courses']['updated'] += 1
+                        logger.debug(f"Updated course: {course_data.get('name')}")
+                    else:
+                        self.stats['courses']['skipped'] += 1
+                else:
+                    # Insert new course
+                    self._insert_course(course_data)
+                    self.stats['courses']['inserted'] += 1
+                    logger.debug(f"Inserted course: {course_data.get('name')}")
+                
+                # Commit in batches for performance
+                if (self.stats['courses']['inserted'] + self.stats['courses']['updated']) % 100 == 0:
+                    self.db.commit()
+                
+            except IntegrityError as e:
+                self.db.rollback()
+                logger.error(f"Integrity error inserting course {course_data.get('name')}: {e}")
+                self.stats['courses']['failed'] += 1
+                
+            except SQLAlchemyError as e:
+                self.db.rollback()
+                logger.error(f"Database error inserting course {course_data.get('name')}: {e}")
+                self.stats['courses']['failed'] += 1
+                
+            except Exception as e:
+                self.db.rollback()
+                logger.error(f"Unexpected error inserting course {course_data.get('name')}: {e}")
+                self.stats['courses']['failed'] += 1
+        
+        # Final commit
+        try:
+            self.db.commit()
+        except SQLAlchemyError as e:
+            self.db.rollback()
+            logger.error(f"Error committing final course batch: {e}")
+        
+        logger.info(f"Courses insertion complete: {self.stats['courses']}")
+        return self.stats['courses']
+    
+    def _insert_university(self, data: Dict[str, Any]):
+        """Insert new university."""
+        university = UniversityDB(
+            name=data.get('name'),
+            name_en=data.get('name_en'),
+            name_ro=data.get('name_ro', data.get('name')),
+            country=data.get('country', 'Romania'),
+            city=data.get('city'),
+            address=data.get('address'),
+            location_type=data.get('location_type'),
+            acceptance_rate=data.get('acceptance_rate'),
+            avg_gpa=data.get('avg_gpa'),
+            avg_bac_score=data.get('avg_bac_score'),
+            sat_min=data.get('sat_min'),
+            sat_max=data.get('sat_max'),
+            act_min=data.get('act_min'),
+            act_max=data.get('act_max'),
+            tuition_annual_ron=data.get('tuition_annual_ron'),
+            tuition_annual_eur=data.get('tuition_annual_eur'),
+            tuition_annual_usd=data.get('tuition_annual_usd'),
+            tuition_eu=data.get('tuition_eu'),
+            tuition_non_eu=data.get('tuition_non_eu'),
+            size=data.get('size'),
+            student_count=data.get('student_count'),
+            description=data.get('description'),
+            description_en=data.get('description_en'),
+            website=data.get('website'),
+            type=data.get('type'),
+            founded_year=data.get('founded_year'),
+            national_rank=data.get('national_rank'),
+            international_rank=data.get('international_rank'),
+            languages_offered=data.get('languages_offered'),
+            english_programs=data.get('english_programs', False),
+            application_requirements=data.get('application_requirements'),
+            deadlines=data.get('deadlines'),
+            notable_features=data.get('notable_features'),
+        )
+        
+        self.db.add(university)
+    
+    def _update_university(self, existing: UniversityDB, data: Dict[str, Any]):
+        """Update existing university with new data."""
+        # Only update non-null values
+        for key, value in data.items():
+            if value is not None and hasattr(existing, key):
+                setattr(existing, key, value)
+    
+    def _insert_program(self, data: Dict[str, Any]):
+        """Insert new program."""
+        program = ProgramDB(
+            university_id=data.get('university_id'),
+            name=data.get('name'),
+            name_en=data.get('name_en'),
+            field=data.get('field'),
+            degree_level=data.get('degree_level'),
+            duration_years=data.get('duration_years'),
+            language=data.get('language'),
+            strength_rating=data.get('strength_rating'),
+            accreditation=data.get('accreditation'),
+            specific_requirements=data.get('specific_requirements'),
+            min_bac_score=data.get('min_bac_score'),
+            required_subjects=data.get('required_subjects'),
+            description=data.get('description'),
+        )
+        
+        self.db.add(program)
+    
+    def _update_program(self, existing: ProgramDB, data: Dict[str, Any]):
+        """Update existing program with new data."""
+        for key, value in data.items():
+            if value is not None and hasattr(existing, key):
+                setattr(existing, key, value)
+    
+    def _insert_course(self, data: Dict[str, Any]):
+        """Insert new course."""
+        course = CourseDB(
+            program_id=data.get('program_id'),
+            name=data.get('name'),
+            year_of_study=data.get('year_of_study'),
+        )
+        
+        self.db.add(course)
+    
+    def _update_course(self, existing: CourseDB, data: Dict[str, Any]):
+        """Update existing course with new data."""
+        for key, value in data.items():
+            if value is not None and hasattr(existing, key):
+                setattr(existing, key, value)
+    
+    def get_statistics(self) -> Dict[str, Any]:
+        """Get insertion statistics."""
+        return {
+            'universities': self.stats['universities'].copy(),
+            'programs': self.stats['programs'].copy(),
+            'courses': self.stats['courses'].copy(),
+            'timestamp': datetime.now().isoformat()
+        }

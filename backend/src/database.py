@@ -72,6 +72,10 @@ class UniversityDB(Base):
     deadlines = Column(JSON)
     notable_features = Column(JSON)  # List of notable features
     
+    # Scraper metadata
+    source_url = Column(String)  # URL where data was scraped from
+    last_verified_at = Column(String)  # ISO timestamp of last data verification
+    
     # Relationships
     programs = relationship("ProgramDB", back_populates="university", cascade="all, delete-orphan")
     admission_criteria = relationship("AdmissionCriteriaDB", back_populates="university", cascade="all, delete-orphan")
@@ -103,6 +107,10 @@ class ProgramDB(Base):
     required_subjects = Column(JSON)  # For Baccalaureate
     
     description = Column(Text)
+    
+    # Scraper metadata
+    source_url = Column(String)  # URL where data was scraped from
+    last_verified_at = Column(String)  # ISO timestamp of last data verification
     
     # Relationships
     university = relationship("UniversityDB", back_populates="programs")

@@ -1,0 +1,17 @@
+# Romanian University Data Scraper - Requirements
+# Install with: pip install -r requirements_scraper.txt
+
+# Core dependencies
+requests>=2.31.0
+beautifulsoup4>=4.12.0
+lxml>=4.9.0
+
+# Database (already in main requirements)
+sqlalchemy>=2.0.0
+
+# Optional but recommended
+# For better HTML parsing
+html5lib>=1.1
+
+# For progress bars (optional)
+tqdm>=4.66.0
