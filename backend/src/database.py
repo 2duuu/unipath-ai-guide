@@ -96,6 +96,10 @@ class ProgramDB(Base):
     # Program strength
     strength_rating = Column(Float)  # 1-10 scale
     accreditation = Column(JSON)  # List of accreditations
+
+     # Teaching and international opportunities (for extended profile matching)
+    teaching_format = Column(JSON, nullable=True)  # Array of teaching formats: ["traditional_lectures", "project_based"]
+    international_opportunities = Column(JSON, nullable=True)  # Object with opportunity indicators
     
     # Requirements
     specific_requirements = Column(JSON)

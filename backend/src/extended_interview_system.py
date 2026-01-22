@@ -481,26 +481,8 @@ class ExtendedInterviewSystem:
         ]
     
     def _get_additional_preference_questions(self) -> List[Dict[str, Any]]:
-        """Get 2 additional preference questions."""
+        """Get additional preference questions."""
         return [
-            {
-                "id": "program_structure",
-                "question": "What type of program structure interests you most?",
-                "type": "choice",
-                "field": "program_structure",
-                "options": [
-                    "research_intensive",
-                    "professional_applied",
-                    "balanced",
-                    "no_preference"
-                ],
-                "descriptions": {
-                    "research_intensive": "Research-intensive - Thesis work, publications, lab research",
-                    "professional_applied": "Professional/Applied - Internships, industry projects, practicum",
-                    "balanced": "Balanced - Mix of research and professional development",
-                    "no_preference": "No preference"
-                }
-            },
             {
                 "id": "international_plans",
                 "question": "Do you plan to work internationally after graduation?",
@@ -687,10 +669,6 @@ class ExtendedInterviewSystem:
         
         summary += "=" * 70
         return summary
-    
-    def get_extended_profile(self) -> 'ExtendedUserProfile':
-        """Get the extended user profile."""
-        return self.extended_profile
     
     def close(self):
         """Close database connection."""

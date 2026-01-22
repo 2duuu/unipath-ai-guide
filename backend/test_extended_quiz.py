@@ -57,7 +57,7 @@ def run_extended_test(test_num, program_duration):
         except:
             pass  # Some questions might not exist
     
-    extended_profile = extended.get_extended_profile()
+    extended_profile = extended.extended_profile
     
     # Step 3: Get program matches
     matcher = RefinedMatchingEngine()

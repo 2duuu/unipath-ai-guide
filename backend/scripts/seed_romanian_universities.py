@@ -343,7 +343,14 @@ def seed_universities():
                     "degree_level": "bachelor",
                     "duration_years": 4,
                     "language": "English",
-                    "strength_rating": 9.0
+                    "strength_rating": 9.0,
+                    "teaching_format": ["traditional_lectures", "project_based"],
+                    "international_opportunities": {
+                        "internships": True,
+                        "study_abroad": True,
+                        "job_placement": "medium",
+                        "exchange_programs": True
+                    }
                 },
                 {
                     "name": "Applied Electronics",
@@ -367,7 +374,14 @@ def seed_universities():
                     "degree_level": "master",
                     "duration_years": 2,
                     "language": "English",
-                    "strength_rating": 9.0
+                    "strength_rating": 9.0,
+                    "teaching_format": ["traditional_lectures", "project_based"],
+                    "international_opportunities": {
+                        "internships": True,
+                        "study_abroad": True,
+                        "job_placement": "high",
+                        "exchange_programs": True
+                    }
                 },
                 {
                     "name": "Electric Vehicle Propulsion and Control",
@@ -435,7 +449,14 @@ def seed_universities():
                     "degree_level": "bachelor",
                     "duration_years": 3,
                     "language": "English",
-                    "strength_rating": 7.0
+                    "strength_rating": 7.0,
+                    "teaching_format": ["traditional_lectures", "case_studies"],
+                    "international_opportunities": {
+                        "internships": True,
+                        "study_abroad": False,
+                        "job_placement": "medium",
+                        "exchange_programs": True
+                    }
                 },
                 {
                     "name": "American Studies",
@@ -758,7 +779,14 @@ def seed_universities():
                     "degree_level": "bachelor",
                     "duration_years": 6,
                     "language": "English",
-                    "strength_rating": 9.5
+                    "strength_rating": 9.5,
+                    "teaching_format": ["traditional_lectures", "interactive_seminars"],
+                    "international_opportunities": {
+                        "internships": False,
+                        "study_abroad": False,
+                        "job_placement": "low",
+                        "exchange_programs": False
+                    }
                 },
                 {
                     "name": "Pharmacy",

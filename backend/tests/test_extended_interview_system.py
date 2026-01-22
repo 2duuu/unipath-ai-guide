@@ -53,10 +53,10 @@ class TestExtendedInterviewSystem:
         eng_questions = [q for q in questions if 'eng' in q.get('id', '').lower()]
         assert len(eng_questions) > 0
         
-        # Check for additional preference questions
+        # Check for additional preference questions (1 question: international_plans)
         additional = [q for q in questions if q['id'] in 
-                     ['program_structure', 'international_plans']]
-        assert len(additional) == 2
+                     ['international_plans']]
+        assert len(additional) == 1
         
         extended_system.close()
     
