@@ -26,39 +26,39 @@ import {
 } from "@/components/ui/dialog";
 
 const sidebarItems = [
-  { id: "profile", label: "Profilul Meu", icon: User },
-  { id: "package", label: "Pachetul Meu", icon: Package },
-  { id: "results", label: "Rezultate Quiz", icon: FileText },
-  { id: "appointments", label: "Programări", icon: Calendar },
-  { id: "payments", label: "Plăți & Facturi", icon: CreditCard },
+  { id: "profile", label: "My Profile", icon: User },
+  { id: "package", label: "My Plan", icon: Package },
+  { id: "results", label: "Quiz Results", icon: FileText },
+  { id: "appointments", label: "Appointments", icon: Calendar },
+  { id: "payments", label: "Payments & Invoices", icon: CreditCard },
 ];
 
 const mockAIResults = [
   {
     id: 1,
-    date: "14 Ianuarie 2026",
-    mainMatch: "Informatică și Științe Aplicate",
+    date: "January 14 2026",
+    mainMatch: "Applied Computer Science",
     compatibility: 87,
-    description: "Profilul tău indică o puternică înclinație către rezolvarea problemelor logice și structuri abstracte.",
+    description: "Your profile shows a strong inclination toward solving logical problems and abstract structures.",
   },
   {
     id: 2,
-    date: "10 Ianuarie 2026",
-    mainMatch: "Automatică și Calculatoare",
+    date: "January 10 2026",
+    mainMatch: "Automation and Computers",
     compatibility: 82,
-    description: "Aptitudini excelente pentru sisteme automatizate și programare.",
+    description: "Excellent aptitude for automated systems and programming.",
   },
 ];
 
 const mockTestHistory = [
-  { id: 1, date: "14 Ianuarie 2026", type: "Quiz Complet", questions: 25, score: "87%" },
-  { id: 2, date: "10 Ianuarie 2026", type: "Quiz Rapid", questions: 10, score: "82%" },
-  { id: 3, date: "5 Ianuarie 2026", type: "Quiz Complet", questions: 25, score: "79%" },
+  { id: 1, date: "January 14 2026", type: "Full Quiz", questions: 25, score: "87%" },
+  { id: 2, date: "January 10 2026", type: "Quick Quiz", questions: 10, score: "82%" },
+  { id: 3, date: "January 5 2026", type: "Full Quiz", questions: 25, score: "79%" },
 ];
 
 const mockAppointments = [
-  { id: 1, date: "20 Ianuarie 2026", time: "14:00", type: "Consultanță Standard", status: "Confirmat" },
-  { id: 2, date: "25 Ianuarie 2026", time: "10:00", type: "Sesiune Premium", status: "În așteptare" },
+  { id: 1, date: "January 20 2026", time: "14:00", type: "Standard Consultation", status: "Confirmed" },
+  { id: 2, date: "January 25 2026", time: "10:00", type: "Premium Session", status: "Pending" },
 ];
 
 const Account = () => {
@@ -159,7 +159,7 @@ const Account = () => {
       setShowLockedDialog(true);
     } else {
       // TODO: Implement PDF download
-      alert('Descărcare PDF va fi implementată în curând!');
+      alert('PDF download will be available soon!');
     }
   };
 
@@ -181,15 +181,15 @@ const Account = () => {
       setRefreshKey(prev => prev + 1);
       
       toast({
-        title: 'Pachet Actualizat',
-        description: 'Ai revenit cu succes la pachetul gratuit.',
+        title: 'Plan Updated',
+        description: 'You successfully switched back to the free plan.',
       });
       
       setShowRevertDialog(false);
     } catch (error) {
       toast({
-        title: 'Eroare',
-        description: 'Nu am putut reveni la pachetul gratuit. Încearcă din nou.',
+        title: 'Error',
+        description: 'Could not switch back to the free plan. Please try again.',
         variant: 'destructive',
       });
     } finally {
@@ -236,8 +236,8 @@ const Account = () => {
                 {getInitials()}
               </div>
               <div>
-                <h1 className="font-display text-2xl md:text-3xl font-bold">Salut, {user.name || user.username}!</h1>
-                <p className="opacity-90">Bine ai revenit pe UniHub.</p>
+                <h1 className="font-display text-2xl md:text-3xl font-bold">Hi, {user.name || user.username}!</h1>
+                <p className="opacity-90">Welcome back to UniHub.</p>
               </div>
             </div>
           </motion.div>
@@ -276,7 +276,7 @@ const Account = () => {
                       className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-destructive hover:bg-destructive/10 transition-colors text-left"
                     >
                       <LogOut className="w-5 h-5" />
-                      Deconectare
+                      Log out
                     </button>
                   </nav>
                 </CardContent>
@@ -299,34 +299,34 @@ const Account = () => {
                           value="user-info"
                           className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-6 py-4"
                         >
-                          Informații Cont
+                          Account Info
                         </TabsTrigger>
                         <TabsTrigger
                           value="ai-results"
                           className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-6 py-4"
                         >
-                          Rezultate AI
+                          AI Results
                         </TabsTrigger>
                         <TabsTrigger
                           value="history"
                           className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-6 py-4"
                         >
-                          Istoric Teste
+                          Test History
                         </TabsTrigger>
                       </TabsList>
 
                       <TabsContent value="user-info" className="p-6">
                         <div className="space-y-6">
                           <div>
-                            <h3 className="font-semibold text-lg mb-4">Informații Personale</h3>
+                            <h3 className="font-semibold text-lg mb-4">Personal Information</h3>
                             <div className="space-y-4">
                               <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                  <Label className="text-muted-foreground text-sm">Nume</Label>
-                                  <p className="font-medium mt-1">{user.name || 'Nu este setat'}</p>
+                                  <Label className="text-muted-foreground text-sm">Name</Label>
+                                  <p className="font-medium mt-1">{user.name || 'Not set'}</p>
                                 </div>
                                 <div>
-                                  <Label className="text-muted-foreground text-sm">Nume utilizator</Label>
+                                  <Label className="text-muted-foreground text-sm">Username</Label>
                                   <p className="font-medium mt-1">{user.username}</p>
                                 </div>
                               </div>
@@ -335,20 +335,20 @@ const Account = () => {
                                 <p className="font-medium mt-1">{user.email}</p>
                               </div>
                               <div>
-                                <Label className="text-muted-foreground text-sm">Status verificare</Label>
+                                <Label className="text-muted-foreground text-sm">Verification status</Label>
                                 <div className="mt-1">
                                   {user.is_verified ? (
-                                    <Badge className="bg-green-100 text-green-700">Verificat</Badge>
+                                    <Badge className="bg-green-100 text-green-700">Verified</Badge>
                                   ) : (
-                                    <Badge variant="secondary">Neverificat</Badge>
+                                    <Badge variant="secondary">Not verified</Badge>
                                   )}
                                 </div>
                               </div>
                               {user.created_at && (
                                 <div>
-                                  <Label className="text-muted-foreground text-sm">Membru din</Label>
+                                  <Label className="text-muted-foreground text-sm">Member since</Label>
                                   <p className="font-medium mt-1">
-                                    {new Date(user.created_at).toLocaleDateString('ro-RO', {
+                                    {new Date(user.created_at).toLocaleDateString('en-US', {
                                       year: 'numeric',
                                       month: 'long',
                                       day: 'numeric'
@@ -371,10 +371,10 @@ const Account = () => {
                             <div key={result.id} className="space-y-4">
                               <div>
                                 <h3 className="font-semibold text-foreground">
-                                  {result.quiz_type === 'initial' ? 'Quiz Inițial' : 'Quiz Extended'}
+                                  {result.quiz_type === 'initial' ? 'Initial Quiz' : 'Extended Quiz'}
                                 </h3>
                                 <p className="text-sm text-muted-foreground">
-                                  Generat pe {new Date(result.created_at).toLocaleDateString('ro-RO', {
+                                  Generated on {new Date(result.created_at).toLocaleDateString('en-US', {
                                     year: 'numeric',
                                     month: 'long',
                                     day: 'numeric',
@@ -387,7 +387,7 @@ const Account = () => {
                                 <CardContent className="p-6">
                                   <div className="flex items-start justify-between mb-4">
                                     <div>
-                                      <h4 className="font-semibold text-lg">Compatibilitate Principală</h4>
+                                      <h4 className="font-semibold text-lg">Primary Match</h4>
                                       <p className="text-primary font-bold text-xl mt-1">{result.main_match_field}</p>
                                     </div>
                                     <Badge className="bg-green-100 text-green-700 text-lg px-3 py-1">
@@ -397,7 +397,7 @@ const Account = () => {
                                   <p className="text-muted-foreground">{result.description}</p>
                                   {result.matched_universities && result.matched_universities.length > 0 && (
                                     <div className="mt-4">
-                                      <p className="font-semibold text-sm mb-2">Universități Recomandate:</p>
+                                      <p className="font-semibold text-sm mb-2">Recommended Universities:</p>
                                       <ul className="list-disc list-inside text-sm text-muted-foreground">
                                         {result.matched_universities.map((uni, idx) => (
                                           <li key={idx}>{uni}</li>
@@ -412,7 +412,7 @@ const Account = () => {
                                   >
                                     {!hasActivePackage && <Lock className="w-4 h-4" />}
                                     {hasActivePackage && <Download className="w-4 h-4" />}
-                                    Descarcă Raportul Complet (PDF)
+                                    Download Full Report (PDF)
                                     {!hasActivePackage && (
                                       <span className="ml-2 text-xs opacity-75">(Premium)</span>
                                     )}
@@ -423,9 +423,9 @@ const Account = () => {
                           ))
                         ) : (
                           <div className="text-center py-8">
-                            <p className="text-muted-foreground">Nu ai completat nici un quiz încă.</p>
+                            <p className="text-muted-foreground">You haven't completed any quizzes yet.</p>
                             <Link to="/quiz">
-                              <Button className="mt-4">Completeaza Quiz-ul</Button>
+                              <Button className="mt-4">Take the Quiz</Button>
                             </Link>
                           </div>
                         )}
@@ -445,13 +445,13 @@ const Account = () => {
                                     <div>
                                       <p className="font-medium">{attempt.quiz_label}</p>
                                       <p className="text-sm text-muted-foreground">
-                                        {new Date(attempt.created_at).toLocaleDateString('ro-RO', {
+                                        {new Date(attempt.created_at).toLocaleDateString('en-US', {
                                           year: 'numeric',
                                           month: 'long',
                                           day: 'numeric',
                                           hour: '2-digit',
                                           minute: '2-digit'
-                                        })} • {attempt.num_questions} întrebări
+                                        })} • {attempt.num_questions} questions
                                       </p>
                                     </div>
                                     <div className="text-right">
@@ -469,7 +469,7 @@ const Account = () => {
                                   >
                                     {!hasActivePackage && <Lock className="w-4 h-4 mr-2" />}
                                     {hasActivePackage && <Download className="w-4 h-4 mr-2" />}
-                                    Descarcă Raport PDF
+                                    Download PDF Report
                                     {!hasActivePackage && (
                                       <span className="ml-2 text-xs opacity-75">(Premium)</span>
                                     )}
@@ -480,9 +480,9 @@ const Account = () => {
                           </div>
                         ) : (
                           <div className="text-center py-8">
-                            <p className="text-muted-foreground">Nu ai salvat nici un quiz încă.</p>
+                            <p className="text-muted-foreground">You haven't saved any quizzes yet.</p>
                             <Link to="/quiz">
-                              <Button className="mt-4">Completeaza și Salvează un Quiz</Button>
+                              <Button className="mt-4">Take and Save a Quiz</Button>
                             </Link>
                           </div>
                         )}
@@ -496,7 +496,7 @@ const Account = () => {
                 <div className="space-y-6">
                   <Card className="border-border/50">
                     <CardHeader>
-                      <CardTitle>Pachetul Meu</CardTitle>
+                      <CardTitle>My Plan</CardTitle>
                     </CardHeader>
                     <CardContent>
                       <PackageInfoCard key={refreshKey} />
@@ -506,9 +506,9 @@ const Account = () => {
                           <div className="flex items-start gap-3 p-4 rounded-lg bg-amber-500/10 border border-amber-500/20 mb-4">
                             <AlertTriangle className="w-5 h-5 text-amber-600 mt-0.5 flex-shrink-0" />
                             <div className="flex-1">
-                              <h4 className="font-semibold text-amber-900 mb-1">Revenire la Pachetul Gratuit</h4>
+                              <h4 className="font-semibold text-amber-900 mb-1">Switch Back to Free</h4>
                               <p className="text-sm text-amber-800">
-                                Poți reveni oricând la pachetul gratuit. Vei pierde accesul la toate funcționalitățile premium.
+                                You can move back to the free plan anytime. You will lose access to all premium features.
                               </p>
                             </div>
                           </div>
@@ -517,7 +517,7 @@ const Account = () => {
                             className="w-full border-destructive/50 text-destructive hover:bg-destructive/10"
                             onClick={() => setShowRevertDialog(true)}
                           >
-                            Renunță la Pachetul Premium
+                            Cancel Premium Plan
                           </Button>
                         </div>
                       )}
@@ -526,14 +526,14 @@ const Account = () => {
                   
                   <Card className="border-border/50">
                     <CardHeader>
-                      <CardTitle>Actualizează Pachetul</CardTitle>
+                      <CardTitle>Upgrade Your Plan</CardTitle>
                     </CardHeader>
                     <CardContent>
                       <p className="text-muted-foreground mb-4">
-                        Vrei mai multe funcționalități? Explorează pachetele disponibile și alege cel mai potrivit pentru tine.
+                        Want more features? Explore the available plans and pick the best fit for you.
                       </p>
                       <Button asChild>
-                        <Link to="/pachete">Vezi Toate Pachetele</Link>
+                        <Link to="/pachete">View All Plans</Link>
                       </Button>
                     </CardContent>
                   </Card>
@@ -543,7 +543,7 @@ const Account = () => {
               {activeSection === "results" && (
                 <Card className="border-border/50">
                   <CardHeader>
-                    <CardTitle>Rezultatele Tale Quiz</CardTitle>
+                    <CardTitle>Your Quiz Results</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-6">
                     {loadingQuizResults ? (
@@ -565,7 +565,7 @@ const Account = () => {
                                 <div className="flex items-start justify-between mb-4">
                                   <div className="flex-1">
                                     <p className="text-sm text-muted-foreground mb-1">
-                                      {new Date(latestAttempt.created_at).toLocaleDateString('ro-RO', {
+                                      {new Date(latestAttempt.created_at).toLocaleDateString('en-US', {
                                         day: 'numeric',
                                         month: 'long',
                                         year: 'numeric'
@@ -575,7 +575,7 @@ const Account = () => {
                                       {latestAttempt.main_match}
                                     </h3>
                                     <p className="text-muted-foreground text-sm mb-3">
-                                      {latestAttempt.quiz_label} • {latestAttempt.num_questions} întrebări
+                                      {latestAttempt.quiz_label} • {latestAttempt.num_questions} questions
                                     </p>
                                   </div>
                                   <Badge className="bg-green-100 text-green-700 text-lg px-4 py-2 font-bold">
@@ -585,8 +585,8 @@ const Account = () => {
                                 
                                 <div className="bg-muted/50 rounded-lg p-4 mb-4">
                                   <p className="text-foreground/80 leading-relaxed">
-                                    Profilul tău indică o puternică înclinație către această specializare, 
-                                    bazată pe răspunsurile tale la chestionarul de compatibilitate.
+                                    Your profile shows a strong inclination toward this specialization,
+                                    based on your compatibility quiz answers.
                                   </p>
                                 </div>
 
@@ -599,7 +599,7 @@ const Account = () => {
                                   >
                                     {!hasActivePackage && <Lock className="w-4 h-4 mr-2" />}
                                     {hasActivePackage && <Download className="w-4 h-4 mr-2" />}
-                                    Descarcă Raport PDF
+                                    Download PDF Report
                                     {!hasActivePackage && (
                                       <span className="ml-2 text-xs opacity-75">(Premium)</span>
                                     )}
@@ -611,7 +611,7 @@ const Account = () => {
                                   >
                                     <Link to="/quiz">
                                       <ChevronRight className="w-4 h-4 mr-2" />
-                                      Refă Testul
+                                      Retake Quiz
                                     </Link>
                                   </Button>
                                 </div>
@@ -625,12 +625,12 @@ const Account = () => {
                         <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
                           <FileText className="w-8 h-8 text-primary" />
                         </div>
-                        <h3 className="font-semibold text-lg mb-2">Niciun quiz completat încă</h3>
+                        <h3 className="font-semibold text-lg mb-2">No quizzes completed yet</h3>
                         <p className="text-muted-foreground mb-6">
-                          Completează primul tău quiz pentru a primi recomandări personalizate
+                          Complete your first quiz to receive personalized recommendations
                         </p>
                         <Button asChild>
-                          <Link to="/quiz">Începe Quiz-ul</Link>
+                          <Link to="/quiz">Start Quiz</Link>
                         </Button>
                       </div>
                     )}
@@ -641,7 +641,7 @@ const Account = () => {
               {activeSection === "appointments" && (
                 <Card className="border-border/50">
                   <CardHeader>
-                    <CardTitle>Programările Tale</CardTitle>
+                    <CardTitle>Your Appointments</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     {mockAppointments.map((appointment) => (
@@ -653,10 +653,10 @@ const Account = () => {
                             </div>
                             <div>
                               <p className="font-medium">{appointment.type}</p>
-                              <p className="text-sm text-muted-foreground">{appointment.date} la {appointment.time}</p>
+                              <p className="text-sm text-muted-foreground">{appointment.date} at {appointment.time}</p>
                             </div>
                           </div>
-                          <Badge variant={appointment.status === "Confirmat" ? "default" : "secondary"}>
+                          <Badge variant={appointment.status === "Confirmed" ? "default" : "secondary"}>
                             {appointment.status}
                           </Badge>
                         </CardContent>
@@ -669,7 +669,7 @@ const Account = () => {
               {activeSection === "payments" && (
                 <Card className="border-border/50">
                   <CardHeader>
-                    <CardTitle>Plăți & Facturi</CardTitle>
+                    <CardTitle>Payments & Invoices</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     {loadingInvoices ? (
@@ -678,7 +678,7 @@ const Account = () => {
                       </div>
                     ) : invoices.length === 0 ? (
                       <div className="text-center py-8 text-muted-foreground">
-                        Nu ai nicio factură încă.
+                        You don't have any invoices yet.
                       </div>
                     ) : (
                       invoices.map((invoice) => (
@@ -691,7 +691,7 @@ const Account = () => {
                               <div>
                                 <p className="font-medium">{invoice.package}</p>
                                 <p className="text-sm text-muted-foreground">
-                                  {invoice.invoice_number} • {new Date(invoice.date).toLocaleDateString('ro-RO', {
+                                  {invoice.invoice_number} • {new Date(invoice.date).toLocaleDateString('en-US', {
                                     year: 'numeric',
                                     month: 'long',
                                     day: 'numeric'
@@ -702,7 +702,7 @@ const Account = () => {
                             <div className="text-right">
                               <p className="font-semibold">€{invoice.amount.toFixed(2)}</p>
                               <Badge className="mt-1 bg-green-100 text-green-700">
-                                {invoice.status === 'paid' ? 'Plătit' : invoice.status}
+                                {invoice.status === 'paid' ? 'Paid' : invoice.status}
                               </Badge>
                             </div>
                           </CardContent>
@@ -724,18 +724,18 @@ const Account = () => {
             <div className="flex items-center justify-center w-12 h-12 mx-auto mb-4 rounded-full bg-amber-500/10">
               <Lock className="w-6 h-6 text-amber-600" />
             </div>
-            <DialogTitle className="text-center">Funcție Premium Blocată</DialogTitle>
+            <DialogTitle className="text-center">Premium Feature Locked</DialogTitle>
             <DialogDescription className="text-center pt-2">
-              Descărcarea raportului PDF este disponibilă doar pentru utilizatorii cu un pachet premium. 
-              Upgrade-ează acum pentru a accesa această funcție și multe altele!
+              PDF downloads are available only for premium users.
+              Upgrade now to unlock this feature and more!
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="flex-col sm:flex-col gap-2 sm:gap-2">
             <Button onClick={handleUpgradeClick} className="w-full">
-              Upgrade la Premium
+              Upgrade to Premium
             </Button>
             <Button variant="outline" onClick={() => setShowLockedDialog(false)} className="w-full">
-              Poate mai târziu
+              Maybe later
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -748,14 +748,14 @@ const Account = () => {
             <div className="flex items-center justify-center w-12 h-12 mx-auto mb-4 rounded-full bg-destructive/10">
               <AlertTriangle className="w-6 h-6 text-destructive" />
             </div>
-            <DialogTitle className="text-center">Ești sigur?</DialogTitle>
+            <DialogTitle className="text-center">Are you sure?</DialogTitle>
             <DialogDescription className="text-center pt-2">
-              Dacă revii la pachetul gratuit, vei pierde accesul la toate funcționalitățile premium, inclusiv:
+              If you switch back to the free plan, you'll lose access to all premium features, including:
               <ul className="list-disc text-left mt-3 space-y-1 pl-6">
-                <li>Comparații AI avansate</li>
-                <li>Descărcare rapoarte PDF</li>
-                <li>Analiza de compatibilitate pentru universități</li>
-                <li>Chat AI nelimitat</li>
+                <li>Advanced AI comparisons</li>
+                <li>PDF report downloads</li>
+                <li>University compatibility analysis</li>
+                <li>Unlimited AI chat</li>
               </ul>
             </DialogDescription>
           </DialogHeader>
@@ -769,10 +769,10 @@ const Account = () => {
               {isReverting ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Se procesează...
+                  Processing...
                 </>
               ) : (
-                'Da, Renunță la Premium'
+                'Yes, switch to Free'
               )}
             </Button>
             <Button 
@@ -781,7 +781,7 @@ const Account = () => {
               disabled={isReverting}
               className="w-full"
             >
-              Anulează
+              Cancel
             </Button>
           </DialogFooter>
         </DialogContent>

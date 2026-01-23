@@ -16,33 +16,33 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 const navLinks = [
-  { href: "/", label: "Acasă" },
-  { href: "/cum-functioneaza", label: "Cum funcționează AI" },
-  { href: "/pachete", label: "Pachete" },
-  { href: "/facultati", label: "Facultăți" },
+  { href: "/", label: "Home" },
+  { href: "/cum-functioneaza", label: "How AI Works" },
+  { href: "/pachete", label: "Packages" },
+  { href: "/facultati", label: "Universities" },
   { href: "/contact", label: "Contact" },
 ];
 
 const FEATURE_LABELS: Record<PackageFeature, string> = {
-  [PackageFeature.BASIC_QUIZ]: 'Chestionar Academic de Bază',
-  [PackageFeature.UNIVERSITY_RECOMMENDATIONS]: 'Recomandări Universități',
-  [PackageFeature.ADVANCED_AI_COMPARISONS]: 'Comparații AI Avansate',
-  [PackageFeature.RANKED_RECOMMENDATIONS]: 'Recomandări Clasificate',
-  [PackageFeature.TRADEOFF_ANALYSIS]: 'Analiză Compromisuri',
-  [PackageFeature.ADMISSION_PROBABILITY]: 'Probabilitate Admitere',
-  [PackageFeature.PDF_SUMMARY]: 'Descărcare Raport PDF',
-  [PackageFeature.UNLIMITED_AI_CHAT]: 'Chat AI Nelimitat',
-  [PackageFeature.APPLICATION_STRATEGY]: 'Ghid Strategie Aplicare',
-  [PackageFeature.DEADLINE_TIMELINE]: 'Calendar Termene Limită',
-  [PackageFeature.MOTIVATION_LETTER_TRAINING]: 'Training Scrisoare Motivație',
-  [PackageFeature.CV_TRAINING]: 'Training CV',
-  [PackageFeature.AI_FEEDBACK]: 'Feedback AI Documente',
-  [PackageFeature.VIDEO_COUNSELING]: 'Sesiuni Consiliere Video',
-  [PackageFeature.HUMAN_GUIDANCE]: 'Îndrumare Expert Uman',
-  [PackageFeature.DOCUMENT_CHECKS]: 'Verificare Documente',
-  [PackageFeature.SUBMISSION_PREP]: 'Pregătire Trimitere',
-  [PackageFeature.DEADLINE_TRACKING]: 'Urmărire Termene',
-  [PackageFeature.PEER_INSIGHTS]: 'Perspective Colegi',
+  [PackageFeature.BASIC_QUIZ]: 'Core Academic Quiz',
+  [PackageFeature.UNIVERSITY_RECOMMENDATIONS]: 'University Recommendations',
+  [PackageFeature.ADVANCED_AI_COMPARISONS]: 'Advanced AI Comparisons',
+  [PackageFeature.RANKED_RECOMMENDATIONS]: 'Ranked Recommendations',
+  [PackageFeature.TRADEOFF_ANALYSIS]: 'Trade-off Analysis',
+  [PackageFeature.ADMISSION_PROBABILITY]: 'Admission Probability',
+  [PackageFeature.PDF_SUMMARY]: 'Download PDF Report',
+  [PackageFeature.UNLIMITED_AI_CHAT]: 'Unlimited AI Chat',
+  [PackageFeature.APPLICATION_STRATEGY]: 'Application Strategy Guide',
+  [PackageFeature.DEADLINE_TIMELINE]: 'Deadline Timeline',
+  [PackageFeature.MOTIVATION_LETTER_TRAINING]: 'Motivation Letter Training',
+  [PackageFeature.CV_TRAINING]: 'CV Training',
+  [PackageFeature.AI_FEEDBACK]: 'AI Document Feedback',
+  [PackageFeature.VIDEO_COUNSELING]: 'Video Counseling Sessions',
+  [PackageFeature.HUMAN_GUIDANCE]: 'Human Expert Guidance',
+  [PackageFeature.DOCUMENT_CHECKS]: 'Document Checks',
+  [PackageFeature.SUBMISSION_PREP]: 'Submission Prep',
+  [PackageFeature.DEADLINE_TRACKING]: 'Deadline Tracking',
+  [PackageFeature.PEER_INSIGHTS]: 'Peer Insights',
 };
 
 const ALL_FEATURES = Object.values(PackageFeature);
@@ -189,7 +189,7 @@ const Navbar = () => {
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-80">
                       <DropdownMenuLabel className="flex items-center justify-between">
-                        <span>Beneficiile Pachetului Tău</span>
+                        <span>Your Package Benefits</span>
                         {packageInfo.package_tier === PackageTier.FREE && (
                           <span className="text-xs font-normal text-muted-foreground">Free Plan</span>
                         )}
@@ -221,7 +221,7 @@ const Navbar = () => {
                       <DropdownMenuSeparator />
                       <DropdownMenuItem asChild>
                         <Link to="/pachete" className="w-full cursor-pointer text-primary font-medium">
-                          {packageInfo.package_tier === PackageTier.FREE ? 'Upgrade la Premium' : 'Vezi Toate Pachetele'}
+                          {packageInfo.package_tier === PackageTier.FREE ? 'Upgrade to Premium' : 'View All Packages'}
                         </Link>
                       </DropdownMenuItem>
                     </DropdownMenuContent>
@@ -230,12 +230,12 @@ const Navbar = () => {
                 <Link to="/cont">
                   <Button variant="ghost" size="sm" className="gap-2">
                     <User className="w-4 h-4" />
-                    {user?.username || 'Contul meu'}
+                    {user?.username || 'My account'}
                   </Button>
                 </Link>
                 <Link to="/quiz">
                   <Button variant="default" size="sm">
-                    Începe Quiz
+                    Start Quiz
                   </Button>
                 </Link>
               </>
@@ -243,12 +243,12 @@ const Navbar = () => {
               <>
                 <Link to="/login">
                   <Button variant="outline" size="sm">
-                    Autentificare
+                    Log in
                   </Button>
                 </Link>
                 <Link to="/quiz">
                   <Button variant="default" size="sm">
-                    Începe Quiz
+                    Start Quiz
                   </Button>
                 </Link>
               </>
@@ -306,12 +306,12 @@ const Navbar = () => {
                     <Link to="/cont" onClick={() => setIsOpen(false)}>
                       <Button variant="outline" className="w-full gap-2">
                         <User className="w-4 h-4" />
-                        Contul meu
+                        My account
                       </Button>
                     </Link>
                     <Link to="/quiz" onClick={() => setIsOpen(false)}>
                       <Button variant="default" className="w-full">
-                        Începe Quiz
+                        Start Quiz
                       </Button>
                     </Link>
                   </>
@@ -319,12 +319,12 @@ const Navbar = () => {
                   <>
                     <Link to="/login" onClick={() => setIsOpen(false)}>
                       <Button variant="outline" className="w-full">
-                        Autentificare
+                        Log in
                       </Button>
                     </Link>
                     <Link to="/quiz" onClick={() => setIsOpen(false)}>
                       <Button variant="default" className="w-full">
-                        Începe Quiz
+                        Start Quiz
                       </Button>
                     </Link>
                   </>

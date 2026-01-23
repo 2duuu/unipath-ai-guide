@@ -67,11 +67,10 @@ const Packages = () => {
             className="text-center max-w-3xl mx-auto"
           >
             <h1 className="font-display text-4xl md:text-5xl font-bold text-foreground mb-6">
-              Alege pachetul <span className="text-primary">potrivit</span> pentru tine
+              Choose the <span className="text-primary">right</span> plan for you
             </h1>
             <p className="text-lg text-muted-foreground">
-              Fiecare pachet include acces la AI-ul nostru. Diferența constă în 
-              nivelul de suport și personalizare pe care îl primești.
+              Every plan includes access to our AI. The difference is the level of support and personalization you receive.
             </p>
           </motion.div>
         </div>

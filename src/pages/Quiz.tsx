@@ -481,7 +481,7 @@ export default function Quiz() {
               onClick={() => handleSaveQuizAttempt('initial')}
               disabled={savingQuiz}
             >
-              {savingQuiz ? '💾 Saving...' : '💾 Save to Profile (Quiz rapid)'}
+              {savingQuiz ? '💾 Saving...' : '💾 Save to Profile (Quick Quiz)'}
             </button>
             <button
               className="action-button primary"
@@ -521,7 +521,7 @@ export default function Quiz() {
               onClick={() => handleSaveQuizAttempt('extended')}
               disabled={savingQuiz}
             >
-              {savingQuiz ? '💾 Saving...' : '💾 Save to Profile (Quiz complet)'}
+              {savingQuiz ? '💾 Saving...' : '💾 Save to Profile (Full Quiz)'}
             </button>
             <button
               className="action-button secondary"

@@ -17,7 +17,7 @@ const Footer = () => {
               </span>
             </Link>
             <p className="text-primary-foreground/70 text-sm mb-6">
-              Ghidare personalizată pentru viitorul tău academic. Alege facultatea potrivită cu ajutorul AI-ului nostru.
+              Personalized guidance for your academic future. Choose the right university with the help of our AI.
             </p>
             <div className="flex gap-3">
               {[Facebook, Instagram, Linkedin].map((Icon, i) => (
@@ -34,13 +34,13 @@ const Footer = () => {
 
           {/* Links */}
           <div>
-            <h4 className="font-display font-semibold mb-4">Navigare</h4>
+            <h4 className="font-display font-semibold mb-4">Navigation</h4>
             <ul className="space-y-3">
               {[
-                { label: "Acasă", href: "/" },
-                { label: "Cum funcționează AI", href: "/cum-functioneaza" },
-                { label: "Pachete", href: "/pachete" },
-                { label: "Facultăți", href: "/facultati" },
+                { label: "Home", href: "/" },
+                { label: "How AI Works", href: "/cum-functioneaza" },
+                { label: "Packages", href: "/pachete" },
+                { label: "Universities", href: "/facultati" },
                 { label: "Quiz", href: "/quiz" },
               ].map((link) => (
                 <li key={link.href}>
@@ -57,14 +57,14 @@ const Footer = () => {
 
           {/* Resources */}
           <div>
-            <h4 className="font-display font-semibold mb-4">Resurse</h4>
+            <h4 className="font-display font-semibold mb-4">Resources</h4>
             <ul className="space-y-3">
               {[
                 "Blog",
-                "Ghid alegere facultate",
+                "University choice guide",
                 "FAQ",
-                "Termeni și condiții",
-                "Politica de confidențialitate",
+                "Terms & Conditions",
+                "Privacy Policy",
               ].map((item) => (
                 <li key={item}>
                   <a
@@ -97,7 +97,7 @@ const Footer = () => {
               <li className="flex items-start gap-3">
                 <MapPin className="w-5 h-5 text-primary mt-0.5" />
                 <span className="text-primary-foreground/70 text-sm">
-                  București, România
+                  Bucharest, Romania
                 </span>
               </li>
             </ul>
@@ -106,7 +106,7 @@ const Footer = () => {
 
         {/* Bottom */}
         <div className="mt-12 pt-8 border-t border-primary-foreground/10 text-center text-primary-foreground/50 text-sm">
-          © {new Date().getFullYear()} UniHub. Toate drepturile rezervate.
+          © {new Date().getFullYear()} UniHub. All rights reserved.
         </div>
       </div>
     </footer>

@@ -5,18 +5,18 @@ import aiRobot from "@/assets/robot_albastru.png";
 const aiFeatures = [
   {
     icon: Cpu,
-    title: "Teste inteligente",
-    description: "Întrebări adaptive care se ajustează în funcție de răspunsurile tale.",
+    title: "Smart assessments",
+    description: "Adaptive questions that adjust based on your answers.",
   },
   {
     icon: UserCheck,
-    title: "Analiză profil elev",
-    description: "Profilare completă bazată pe interese, abilități și aspirații.",
+    title: "Student profile analysis",
+    description: "Full profiling based on interests, skills, and aspirations.",
   },
   {
     icon: TrendingUp,
-    title: "Predicție compatibilitate",
-    description: "Scor de potrivire pentru fiecare facultate din baza noastră de date.",
+    title: "Compatibility prediction",
+    description: "Fit score for every university in our database.",
   },
 ];
 
@@ -55,16 +55,16 @@ const AISection = () => {
           >
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary mb-6">
               <Cpu className="w-4 h-4" />
-              <span className="text-sm font-medium">Tehnologie AI</span>
+              <span className="text-sm font-medium">AI technology</span>
             </div>
 
             <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-6">
-              AI-ul nostru te cunoaște mai bine decât crezi
+              Our AI knows you better than you think
             </h2>
 
             <p className="text-lg text-muted-foreground mb-8">
-              Folosim algoritmi de machine learning antrenați pe date de la mii de 
-              studenți pentru a-ți oferi cele mai precise recomandări.
+              We use machine-learning models trained on data from thousands of students
+              to deliver the most accurate recommendations.
             </p>
 
             <div className="space-y-6">
@@ -94,7 +94,7 @@ const AISection = () => {
 
             {/* Trust badges */}
             <div className="flex items-center gap-6 mt-10 pt-8 border-t border-border/50">
-              {["Securitate datelor", "GDPR Compliant", "Fără date vândute"].map((badge) => (
+              {["Data security", "GDPR compliant", "No data sold"].map((badge) => (
                 <div key={badge} className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Check className="w-4 h-4 text-primary" />
                   {badge}

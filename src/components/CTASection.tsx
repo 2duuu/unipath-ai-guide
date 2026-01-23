@@ -21,11 +21,10 @@ const CTASection = () => {
           className="text-center max-w-3xl mx-auto"
         >
           <h2 className="font-display text-3xl md:text-4xl lg:text-5xl font-bold text-primary-foreground mb-6">
-            Programează o ședință gratuită
+            Book a free session
           </h2>
           <p className="text-lg md:text-xl text-primary-foreground/80 mb-10 max-w-2xl mx-auto">
-            Discută cu unul dintre consilierii noștri educaționali și află cum te 
-            putem ajuta să faci cea mai bună alegere pentru viitorul tău.
+            Talk with one of our education counselors and learn how we can help you make the best choice for your future.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -35,14 +34,14 @@ const CTASection = () => {
               className="group"
             >
               <Calendar className="w-5 h-5" />
-              Programează acum
+              Schedule now
               <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </Button>
             <Button
               size="xl"
               className="bg-primary-foreground/10 text-primary-foreground border-2 border-primary-foreground/30 hover:bg-primary-foreground/20 backdrop-blur-sm"
             >
-              Contactează-ne
+              Contact us
             </Button>
           </div>
 
@@ -55,9 +54,9 @@ const CTASection = () => {
             className="flex flex-wrap justify-center gap-6 mt-12 pt-10 border-t border-primary-foreground/20"
           >
             {[
-              "Răspuns în 24h",
-              "Fără obligații",
-              "100% gratuit prima ședință",
+              "Response within 24h",
+              "No commitment",
+              "First session 100% free",
             ].map((item) => (
               <div
                 key={item}

@@ -55,29 +55,28 @@ const HeroSection = () => {
               className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-accent/20 text-accent-foreground mb-6"
             >
               <Sparkles className="w-4 h-4 text-accent" />
-              <span className="text-sm font-medium">Ghidare bazată pe AI</span>
+              <span className="text-sm font-medium">AI-guided counseling</span>
             </motion.div>
 
             <h1 className="font-display text-4xl md:text-5xl lg:text-6xl font-bold text-foreground leading-tight mb-6">
-              Alege{" "}
+              Choose the{" "}
               <span className="text-primary relative">
-                facultatea
+                right program
                 <svg className="absolute -bottom-2 left-0 w-full" viewBox="0 0 200 12" fill="none">
                   <path d="M2 8C50 2 150 2 198 8" stroke="hsl(var(--accent))" strokeWidth="4" strokeLinecap="round" />
                 </svg>
               </span>{" "}
-              potrivită pentru tine
+              for you
             </h1>
 
             <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-xl mx-auto lg:mx-0">
-              Ghidare personalizată pentru viitorul tău academic. AI-ul nostru analizează 
-              interesele, abilitățile și aspirațiile tale pentru a-ți recomanda cele mai 
-              bune opțiuni.
+              Personalized guidance for your academic future. Our AI analyzes your interests,
+              skills, and aspirations to recommend the best options for you.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
               <Button variant="accent" size="xl" className="group" onClick={handleQuizClick}>
-                {hasStartedQuiz ? 'Reîncepe Quizul' : 'Începe Quizul Carierei'}
+                {hasStartedQuiz ? 'Restart Quiz' : 'Start Career Quiz'}
                 {hasStartedQuiz ? (
                   <RefreshCw className="w-5 h-5 group-hover:rotate-180 transition-transform" />
                 ) : (
@@ -85,7 +84,7 @@ const HeroSection = () => {
                 )}
               </Button>
               <Button variant="outline" size="xl" onClick={() => navigate('/pachete')}>
-                Vezi pachetele
+                View packages
               </Button>
             </div>
 
@@ -96,11 +95,11 @@ const HeroSection = () => {
               transition={{ delay: 0.5 }}
               className="grid grid-cols-3 gap-6 mt-12 pt-8 border-t border-border/50"
             >
-              {[
-                { value: "5000+", label: "Studenți ghidați" },
-                { value: "150+", label: "Facultăți analizate" },
-                { value: "95%", label: "Satisfacție" },
-              ].map((stat, i) => (
+                {[
+                  { value: "5000+", label: "Students guided" },
+                  { value: "150+", label: "Universities analyzed" },
+                  { value: "95%", label: "Satisfaction" },
+                ].map((stat, i) => (
                 <div key={i} className="text-center lg:text-left">
                   <div className="font-display text-2xl md:text-3xl font-bold text-primary">
                     {stat.value}

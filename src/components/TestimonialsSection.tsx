@@ -4,25 +4,25 @@ import { Star, Quote } from "lucide-react";
 const testimonials = [
   {
     name: "Maria Popescu",
-    role: "Studentă la Informatică, UB",
+    role: "Computer Science student, UB",
     content:
-      "M-a ajutat să aleg facultatea potrivită! Eram indecisă între mai multe domenii, dar testul AI și consilierul m-au ghidat perfect.",
+      "It helped me pick the right program! I was undecided between several fields, but the AI quiz and counselor guided me perfectly.",
     rating: 5,
     avatar: "MP",
   },
   {
     name: "Andrei Ionescu",
-    role: "Student la Automatică, UPB",
+    role: "Automation student, UPB",
     content:
-      "Scorul de compatibilitate de 92% s-a confirmat! Sunt foarte mulțumit de alegerea mea și mă descurc excelent la facultate.",
+      "The 92% compatibility score checked out! I’m very happy with my choice and doing great at university.",
     rating: 5,
     avatar: "AI",
   },
   {
     name: "Elena Dumitrescu",
-    role: "Studentă la Economie, ASE",
+    role: "Economics student, ASE",
     content:
-      "Raportul personalizat m-a ajutat să înțeleg ce facultate mi se potrivește. Recomand tuturor elevilor de liceu!",
+      "The personalized report helped me understand which university fits me. I recommend it to all high-school students!",
     rating: 5,
     avatar: "ED",
   },
@@ -41,10 +41,10 @@ const TestimonialsSection = () => {
           className="text-center max-w-2xl mx-auto mb-16"
         >
           <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-4">
-            Ce spun studenții noștri
+            What our students say
           </h2>
           <p className="text-lg text-muted-foreground">
-            Peste 5000 de elevi și-au găsit drumul corect cu ajutorul nostru.
+            Over 5000 students have found their path with our support.
           </p>
         </motion.div>
 

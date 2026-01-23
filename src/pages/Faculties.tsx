@@ -37,20 +37,20 @@ interface University {
 
 const fieldTranslations: Record<string, string> = {
   "stem": "STEM",
-  "business": "Business & Economie",
-  "arts_humanities": "Arte & Științe Umaniste",
-  "medicine": "Medicină",
-  "law": "Drept",
-  "social_sciences": "Științe Sociale",
-  "engineering": "Inginerie",
-  "it": "IT & Tehnologie",
+  "business": "Business & Economics",
+  "arts_humanities": "Arts & Humanities",
+  "medicine": "Medicine",
+  "law": "Law",
+  "social_sciences": "Social Sciences",
+  "engineering": "Engineering",
+  "it": "IT & Technology",
 };
 
 const Faculties = () => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCity, setSelectedCity] = useState("Toate");
-  const [selectedDomain, setSelectedDomain] = useState("Toate");
+  const [selectedCity, setSelectedCity] = useState("All");
+  const [selectedDomain, setSelectedDomain] = useState("All");
   const [universities, setUniversities] = useState<University[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -73,7 +73,7 @@ const Faculties = () => {
         setError(null);
       } catch (err) {
         console.error('Error fetching universities:', err);
-        setError('Nu am putut încărca universitățile. Te rugăm să încerci din nou.');
+        setError('We could not load universities. Please try again.');
       } finally {
         setLoading(false);
       }
@@ -114,7 +114,7 @@ const Faculties = () => {
       setShowLockedDialog(true);
     } else {
       // TODO: Implement AI compatibility feature
-      alert(`Funcția de compatibilitate AI pentru ${university.name} va fi disponibilă în curând!`);
+      alert(`AI compatibility for ${university.name} will be available soon!`);
     }
   };
 
@@ -124,18 +124,18 @@ const Faculties = () => {
   };
 
   // Get unique cities from universities
-  const cities = ["Toate", ...Array.from(new Set(universities.map(u => u.city).filter(Boolean)))].sort();
+  const cities = ["All", ...Array.from(new Set(universities.map(u => u.city).filter(Boolean)))].sort();
   
   // Get unique domains from universities
-  const domains = ["Toate", ...Array.from(new Set(
+  const domains = ["All", ...Array.from(new Set(
     universities.flatMap(u => u.program_fields.map(f => fieldTranslations[f] || f))
   ))].sort();
 
   const filteredUniversities = universities.filter((university) => {
     const matchesSearch = university.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       university.name_en.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCity = selectedCity === "Toate" || university.city === selectedCity;
-    const matchesDomain = selectedDomain === "Toate" || 
+    const matchesCity = selectedCity === "All" || university.city === selectedCity;
+    const matchesDomain = selectedDomain === "All" || 
       university.program_fields.some(f => (fieldTranslations[f] || f) === selectedDomain);
     return matchesSearch && matchesCity && matchesDomain;
   });
@@ -154,10 +154,10 @@ const Faculties = () => {
             className="text-center max-w-3xl mx-auto mb-10"
           >
             <h1 className="font-display text-4xl md:text-5xl font-bold text-foreground mb-6">
-              Explorează <span className="text-primary">universitățile</span> din România
+              Explore <span className="text-primary">universities</span> in Romania
             </h1>
             <p className="text-lg text-muted-foreground">
-              Caută și compară universități pentru a găsi cea potrivită pentru tine.
+              Search and compare universities to find the right one for you.
             </p>
           </motion.div>
 
@@ -174,7 +174,7 @@ const Faculties = () => {
                 <div className="flex-1 relative">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                   <Input
-                    placeholder="Caută universități..."
+                    placeholder="Search universities..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="pl-10 h-12"
@@ -217,20 +217,20 @@ const Faculties = () => {
           {loading ? (
             <div className="flex items-center justify-center py-20">
               <Loader2 className="w-8 h-8 animate-spin text-primary" />
-              <span className="ml-3 text-muted-foreground">Se încarcă universitățile...</span>
+              <span className="ml-3 text-muted-foreground">Loading universities...</span>
             </div>
           ) : error ? (
             <div className="text-center py-20">
               <p className="text-destructive mb-4">{error}</p>
               <Button onClick={() => window.location.reload()}>
-                Încearcă din nou
+                Try again
               </Button>
             </div>
           ) : (
             <>
               <div className="flex justify-between items-center mb-8">
                 <p className="text-muted-foreground">
-                  {filteredUniversities.length} universități găsite
+                  {filteredUniversities.length} universities found
                 </p>
               </div>
 
@@ -247,12 +247,12 @@ const Faculties = () => {
                     <div className="flex gap-2 mb-4 flex-wrap">
                       {university.type && (
                         <span className="inline-flex px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-medium">
-                          {university.type === 'public' ? 'Public' : 'Privat'}
+                          {university.type === 'public' ? 'Public' : 'Private'}
                         </span>
                       )}
                       {university.national_rank && (
                         <span className="inline-flex px-3 py-1 rounded-full bg-amber-500/10 text-amber-600 text-xs font-medium">
-                          #{university.national_rank} în România
+                          #{university.national_rank} in Romania
                         </span>
                       )}
                     </div>
@@ -261,7 +261,7 @@ const Faculties = () => {
                       {university.name}
                     </h3>
                     <p className="text-muted-foreground text-sm mb-4 line-clamp-2">
-                      {university.description || "Universitate în România"}
+                      {university.description || "University in Romania"}
                     </p>
 
                     <div className="flex flex-wrap gap-4 mb-6">
@@ -272,18 +272,18 @@ const Faculties = () => {
                       {university.student_count && (
                         <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
                           <Users className="w-4 h-4" />
-                          {university.student_count.toLocaleString()} studenți
+                          {university.student_count.toLocaleString()} students
                         </div>
                       )}
                       <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
                         <Award className="w-4 h-4" />
-                        {university.programs_count} programe
+                        {university.programs_count} programs
                       </div>
                     </div>
 
                     {(university.tuition_annual_ron || university.tuition_annual_eur) && (
                       <p className="text-sm text-muted-foreground mb-4">
-                        Taxă: {university.tuition_annual_ron 
+                        Tuition: {university.tuition_annual_ron 
                           ? `${university.tuition_annual_ron.toLocaleString()} RON/an` 
                           : `${university.tuition_annual_eur?.toLocaleString()} EUR/an`}
                       </p>
@@ -295,7 +295,7 @@ const Faculties = () => {
                         className="w-full group-hover:bg-primary group-hover:text-primary-foreground transition-colors"
                         onClick={() => setSelectedUniversity(university)}
                       >
-                        Vezi detalii
+                        View details
                         <ArrowRight className="w-4 h-4 ml-2" />
                       </Button>
                       
@@ -311,7 +311,7 @@ const Faculties = () => {
                         {hasActivePackage && (
                           <Sparkles className="w-4 h-4 mr-2" />
                         )}
-                        Vezi compatibilitate AI
+                        Check AI compatibility
                         {!hasActivePackage && (
                           <span className="ml-2 text-xs opacity-75">(Premium)</span>
                         )}
@@ -324,10 +324,10 @@ const Faculties = () => {
               {filteredUniversities.length === 0 && !loading && (
                 <div className="text-center py-20">
                   <p className="text-muted-foreground text-lg mb-2">
-                    Nu am găsit universități care să corespundă criteriilor tale
+                    We couldn't find universities matching your filters
                   </p>
                   <p className="text-muted-foreground text-sm">
-                    Încearcă să modifici filtrele sau termenul de căutare
+                    Try adjusting the filters or search term
                   </p>
                 </div>
               )}
@@ -367,21 +367,21 @@ const Faculties = () => {
               <div className="flex gap-2 flex-wrap">
                 {selectedUniversity.type && (
                   <span className="inline-flex px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-medium">
-                    {selectedUniversity.type === 'public' ? 'Public' : 'Privat'}
+                    {selectedUniversity.type === 'public' ? 'Public' : 'Private'}
                   </span>
                 )}
                 {selectedUniversity.national_rank && (
                   <span className="inline-flex px-3 py-1 rounded-full bg-amber-500/10 text-amber-600 text-xs font-medium">
-                    #{selectedUniversity.national_rank} în România
+                    #{selectedUniversity.national_rank} in Romania
                   </span>
                 )}
               </div>
 
               {/* Description */}
               <div>
-                <h3 className="font-semibold text-foreground mb-2">Descriere</h3>
+                <h3 className="font-semibold text-foreground mb-2">Description</h3>
                 <p className="text-muted-foreground leading-relaxed">
-                  {selectedUniversity.description || "Nu sunt disponibile detalii despre această universitate."}
+                  {selectedUniversity.description || "No details are available for this university."}
                 </p>
               </div>
 
@@ -391,7 +391,7 @@ const Faculties = () => {
                   <div className="bg-secondary/50 rounded-lg p-4">
                     <div className="flex items-center gap-2 mb-2">
                       <Users className="w-5 h-5 text-primary" />
-                      <span className="font-semibold text-foreground">Numărul de studenți</span>
+                      <span className="font-semibold text-foreground">Student count</span>
                     </div>
                     <p className="text-muted-foreground">{selectedUniversity.student_count.toLocaleString()}</p>
                   </div>
@@ -400,7 +400,7 @@ const Faculties = () => {
                 <div className="bg-secondary/50 rounded-lg p-4">
                   <div className="flex items-center gap-2 mb-2">
                     <Award className="w-5 h-5 text-primary" />
-                    <span className="font-semibold text-foreground">Programe de studii</span>
+                    <span className="font-semibold text-foreground">Study programs</span>
                   </div>
                   <p className="text-muted-foreground">{selectedUniversity.programs_count}</p>
                 </div>
@@ -408,7 +408,7 @@ const Faculties = () => {
                 {selectedUniversity.acceptance_rate && (
                   <div className="bg-secondary/50 rounded-lg p-4">
                     <div className="flex items-center gap-2 mb-2">
-                      <span className="font-semibold text-foreground">Rata de admitere</span>
+                      <span className="font-semibold text-foreground">Acceptance rate</span>
                     </div>
                     <p className="text-muted-foreground">{(selectedUniversity.acceptance_rate * 100).toFixed(1)}%</p>
                   </div>
@@ -417,7 +417,7 @@ const Faculties = () => {
                 {(selectedUniversity.tuition_annual_ron || selectedUniversity.tuition_annual_eur) && (
                   <div className="bg-secondary/50 rounded-lg p-4">
                     <div className="flex items-center gap-2 mb-2">
-                      <span className="font-semibold text-foreground">Taxă anuală</span>
+                      <span className="font-semibold text-foreground">Annual tuition</span>
                     </div>
                     <p className="text-muted-foreground">
                       {selectedUniversity.tuition_annual_ron 
@@ -431,7 +431,7 @@ const Faculties = () => {
               {/* Program Fields */}
               {selectedUniversity.program_fields.length > 0 && (
                 <div>
-                  <h3 className="font-semibold text-foreground mb-3">Domenii de studiu</h3>
+                  <h3 className="font-semibold text-foreground mb-3">Fields of study</h3>
                   <div className="flex flex-wrap gap-2">
                     {selectedUniversity.program_fields.map((field) => (
                       <span
@@ -454,7 +454,7 @@ const Faculties = () => {
                     rel="noopener noreferrer"
                     className="inline-flex items-center text-primary hover:underline"
                   >
-                    Vizitați site-ul universității
+                    Visit university website
                     <ArrowRight className="w-4 h-4 ml-2" />
                   </a>
                 </div>
@@ -465,7 +465,7 @@ const Faculties = () => {
                 onClick={() => setSelectedUniversity(null)}
                 className="w-full"
               >
-                Închide
+                Close
               </Button>
             </div>
           </motion.div>
@@ -479,18 +479,18 @@ const Faculties = () => {
             <div className="flex items-center justify-center w-12 h-12 mx-auto mb-4 rounded-full bg-amber-500/10">
               <Lock className="w-6 h-6 text-amber-600" />
             </div>
-            <DialogTitle className="text-center">Funcție Premium Blocată</DialogTitle>
+            <DialogTitle className="text-center">Premium Feature Locked</DialogTitle>
             <DialogDescription className="text-center pt-2">
-              Funcția de compatibilitate AI este disponibilă doar pentru utilizatorii cu un pachet premium. 
-              Upgrade-ează acum pentru a accesa această funcție și multe altele!
+              AI compatibility is available only for premium users.
+              Upgrade now to unlock this feature and more!
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="flex-col sm:flex-col gap-2 sm:gap-2">
             <Button onClick={handleUpgradeClick} className="w-full">
-              Upgrade la Premium
+              Upgrade to Premium
             </Button>
             <Button variant="outline" onClick={() => setShowLockedDialog(false)} className="w-full">
-              Poate mai târziu
+              Maybe later
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -4,33 +4,33 @@ import { Target, BarChart3, Brain, Lightbulb, Users, Award } from "lucide-react"
 const features = [
   {
     icon: Target,
-    title: "Analizăm interesele tale",
-    description: "Teste psihometrice avansate pentru a descoperi ce te motivează și ce ți-ar plăcea să faci.",
+    title: "We analyze your interests",
+    description: "Advanced psychometric tests to uncover what motivates you and what you enjoy doing.",
   },
   {
     icon: BarChart3,
-    title: "Comparăm facultăți",
-    description: "Bază de date cu peste 150 de facultăți din România, actualizată constant.",
+    title: "We compare universities",
+    description: "A database of 150+ universities in Romania, kept up to date.",
   },
   {
     icon: Brain,
-    title: "Recomandări cu AI",
-    description: "Algoritmi de machine learning care găsesc matchul perfect pentru profilul tău.",
+    title: "AI-powered recommendations",
+    description: "Machine-learning algorithms that find the perfect match for your profile.",
   },
   {
     icon: Lightbulb,
-    title: "Insight-uri personalizate",
-    description: "Rapoarte detaliate cu puncte forte, puncte slabe și direcții de dezvoltare.",
+    title: "Personalized insights",
+    description: "Detailed reports with strengths, gaps, and development directions.",
   },
   {
     icon: Users,
-    title: "Mentorat 1:1",
-    description: "Consilieri educaționali disponibili pentru întrebări și ghidare suplimentară.",
+    title: "1:1 mentorship",
+    description: "Educational counselors available for questions and extra guidance.",
   },
   {
     icon: Award,
-    title: "Rezultate dovedite",
-    description: "95% dintre utilizatorii noștri sunt mulțumiți de alegerea facultății.",
+    title: "Proven results",
+    description: "95% of our users are satisfied with their university choice.",
   },
 ];
 
@@ -47,10 +47,10 @@ const FeaturesSection = () => {
           className="text-center max-w-2xl mx-auto mb-16"
         >
           <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-4">
-            Ce facem pentru tine?
+            What we do for you
           </h2>
           <p className="text-lg text-muted-foreground">
-            O abordare completă pentru a te ajuta să iei cea mai bună decizie pentru viitorul tău academic.
+            A complete approach to help you make the best decision for your academic future.
           </p>
         </motion.div>
 

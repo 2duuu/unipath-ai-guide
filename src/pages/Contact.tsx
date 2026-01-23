@@ -31,8 +31,8 @@ const Contact = () => {
   const handleContactSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     toast({
-      title: "Mesaj trimis!",
-      description: "Îți vom răspunde în cel mai scurt timp posibil.",
+      title: "Message sent!",
+      description: "We will reply as soon as possible.",
     });
     setContactForm({ name: "", email: "", subject: "", message: "" });
   };
@@ -40,8 +40,8 @@ const Contact = () => {
   const handleAppointmentSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     toast({
-      title: "Programare confirmată!",
-      description: `Ședința ta a fost programată pentru ${appointmentForm.date} la ora ${appointmentForm.time}.`,
+      title: "Appointment confirmed!",
+      description: `Your session is scheduled for ${appointmentForm.date} at ${appointmentForm.time}.`,
     });
     setAppointmentForm({ name: "", email: "", phone: "", date: "", time: "", package: "" });
   };
@@ -60,10 +60,10 @@ const Contact = () => {
             className="text-center mb-12"
           >
             <h1 className="font-display text-4xl md:text-5xl font-bold text-foreground mb-4">
-              Contactează-ne
+              Contact us
             </h1>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Suntem aici să te ajutăm! Trimite-ne un mesaj sau programează o ședință de consultanță.
+              We are here to help! Send us a message or schedule a consulting session.
             </p>
           </motion.div>
         </div>
@@ -81,9 +81,9 @@ const Contact = () => {
           >
             {[
               { icon: Mail, label: "Email", value: "contact@unihub.ro" },
-              { icon: Phone, label: "Telefon", value: "+40 721 234 567" },
-              { icon: MapPin, label: "Locație", value: "București, România" },
-              { icon: Clock, label: "Program", value: "Luni-Vineri: 9:00-18:00" },
+              { icon: Phone, label: "Phone", value: "+40 721 234 567" },
+              { icon: MapPin, label: "Location", value: "Bucharest, Romania" },
+              { icon: Clock, label: "Hours", value: "Monday-Friday: 9:00-18:00" },
             ].map((item, index) => (
               <Card key={index} className="text-center border-border/50">
                 <CardContent className="pt-6">
@@ -108,19 +108,19 @@ const Contact = () => {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Mail className="w-5 h-5 text-primary" />
-                    Trimite-ne un mesaj
+                    Send us a message
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <form onSubmit={handleContactSubmit} className="space-y-4">
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <Label htmlFor="contact-name">Nume complet</Label>
+                        <Label htmlFor="contact-name">Full name</Label>
                         <Input
                           id="contact-name"
                           value={contactForm.name}
                           onChange={(e) => setContactForm({ ...contactForm, name: e.target.value })}
-                          placeholder="Ion Popescu"
+                          placeholder="John Doe"
                           required
                         />
                       </div>
@@ -137,29 +137,29 @@ const Contact = () => {
                       </div>
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="contact-subject">Subiect</Label>
+                      <Label htmlFor="contact-subject">Subject</Label>
                       <Input
                         id="contact-subject"
                         value={contactForm.subject}
                         onChange={(e) => setContactForm({ ...contactForm, subject: e.target.value })}
-                        placeholder="Despre ce este vorba?"
+                        placeholder="What is this about?"
                         required
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="contact-message">Mesaj</Label>
+                      <Label htmlFor="contact-message">Message</Label>
                       <Textarea
                         id="contact-message"
                         value={contactForm.message}
                         onChange={(e) => setContactForm({ ...contactForm, message: e.target.value })}
-                        placeholder="Scrie mesajul tău aici..."
+                        placeholder="Write your message here..."
                         rows={5}
                         required
                       />
                     </div>
                     <Button type="submit" className="w-full gap-2">
                       <Send className="w-4 h-4" />
-                      Trimite mesajul
+                      Send message
                     </Button>
                   </form>
                 </CardContent>
@@ -176,19 +176,19 @@ const Contact = () => {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Calendar className="w-5 h-5 text-accent" />
-                    Programează o ședință
+                    Schedule a session
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <form onSubmit={handleAppointmentSubmit} className="space-y-4">
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <Label htmlFor="appointment-name">Nume complet</Label>
+                        <Label htmlFor="appointment-name">Full name</Label>
                         <Input
                           id="appointment-name"
                           value={appointmentForm.name}
                           onChange={(e) => setAppointmentForm({ ...appointmentForm, name: e.target.value })}
-                          placeholder="Ion Popescu"
+                          placeholder="John Doe"
                           required
                         />
                       </div>
@@ -205,7 +205,7 @@ const Contact = () => {
                       </div>
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="appointment-phone">Telefon</Label>
+                      <Label htmlFor="appointment-phone">Phone</Label>
                       <Input
                         id="appointment-phone"
                         type="tel"
@@ -233,7 +233,7 @@ const Contact = () => {
                           onValueChange={(value) => setAppointmentForm({ ...appointmentForm, time: value })}
                         >
                           <SelectTrigger>
-                            <SelectValue placeholder="Alege ora" />
+                            <SelectValue placeholder="Choose a time" />
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="09:00">09:00</SelectItem>
@@ -249,25 +249,25 @@ const Contact = () => {
                       </div>
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="appointment-package">Tip consultanță</Label>
+                      <Label htmlFor="appointment-package">Consultation type</Label>
                       <Select
                         value={appointmentForm.package}
                         onValueChange={(value) => setAppointmentForm({ ...appointmentForm, package: value })}
                       >
                         <SelectTrigger>
-                          <SelectValue placeholder="Alege tipul" />
+                          <SelectValue placeholder="Choose a type" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="free">Ședință gratuită de cunoaștere</SelectItem>
-                          <SelectItem value="basic">Pachet Basic - Discuție rezultate</SelectItem>
-                          <SelectItem value="standard">Pachet Standard - Consultanță completă</SelectItem>
-                          <SelectItem value="premium">Pachet Premium - Sesiune dedicată</SelectItem>
+                          <SelectItem value="free">Free introductory session</SelectItem>
+                          <SelectItem value="basic">Basic Package - Results review</SelectItem>
+                          <SelectItem value="standard">Standard Package - Full consulting</SelectItem>
+                          <SelectItem value="premium">Premium Package - Dedicated session</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
                     <Button type="submit" variant="accent" className="w-full gap-2">
                       <Calendar className="w-4 h-4" />
-                      Programează ședința
+                      Schedule session
                     </Button>
                   </form>
                 </CardContent>

@@ -8,36 +8,36 @@ const steps = [
   {
     number: "01",
     icon: FileText,
-    title: "Completezi testul",
-    description: "Răspunzi la întrebări despre interesele tale, notele obținute și abilitățile pe care le ai.",
+    title: "Complete the quiz",
+    description: "Answer questions about your interests, grades, and skills.",
     color: "primary",
   },
   {
     number: "02",
     icon: Brain,
-    title: "AI analizează datele",
-    description: "Algoritmii noștri procesează răspunsurile și creează un profil psihometric complet.",
+    title: "AI analyzes your data",
+    description: "Our algorithms process your answers and build a full psychometric profile.",
     color: "accent",
   },
   {
     number: "03",
     icon: Database,
-    title: "Comparăm cu baza de date",
-    description: "Verificăm compatibilitatea ta cu peste 150 de facultăți din România.",
+    title: "We compare with the database",
+    description: "We check your compatibility with over 150 universities in Romania.",
     color: "primary",
   },
   {
     number: "04",
     icon: Target,
-    title: "Calculăm scorul",
-    description: "Primești un scor de compatibilitate pentru fiecare facultate recomandată.",
+    title: "We calculate your score",
+    description: "Get a compatibility score for every recommended university.",
     color: "accent",
   },
   {
     number: "05",
     icon: Gift,
-    title: "Recomandări personalizate",
-    description: "Primești un raport detaliat cu facultățile potrivite și sfaturi personalizate.",
+    title: "Personalized recommendations",
+    description: "Receive a detailed report with the right universities and tailored advice.",
     color: "primary",
   },
 ];
@@ -57,11 +57,11 @@ const HowItWorks = () => {
             className="text-center max-w-3xl mx-auto"
           >
             <h1 className="font-display text-4xl md:text-5xl font-bold text-foreground mb-6">
-              Cum funcționează <span className="text-primary">AI-ul</span> nostru?
+              How does our <span className="text-primary">AI</span> work?
             </h1>
             <p className="text-lg text-muted-foreground">
-              Un proces simplu în 5 pași care te ajută să găsești facultatea perfectă 
-              pentru tine, bazat pe știință și tehnologie.
+              A simple 5-step process that helps you find the perfect university,
+              powered by science and technology.
             </p>
           </motion.div>
         </div>
@@ -103,7 +103,7 @@ const HowItWorks = () => {
                 {/* Content */}
                 <div className="flex-1 pt-1">
                   <div className="text-sm font-bold text-muted-foreground mb-1">
-                    Pasul {step.number}
+                    Step {step.number}
                   </div>
                   <h3 className="font-display text-xl md:text-2xl font-bold text-foreground mb-3">
                     {step.title}
@@ -124,7 +124,7 @@ const HowItWorks = () => {
             className="text-center mt-16"
           >
             <Button variant="accent" size="xl" className="group">
-              Începe testul gratuit
+              Start the free test
               <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </Button>
           </motion.div>
