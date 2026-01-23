@@ -121,26 +121,42 @@ class RefinedMatchingEngine:
         return score, match_type, reasoning
     
     def _score_academic_fit(self, profile: UserProfile, university: UniversityDB) -> float:
-        """Score academic fit (0-1 scale) based on GPA and test scores."""
-        # Estimate university GPA from BAC score
-        uni_avg_gpa = (university.avg_bac_score / 2.5) if university.avg_bac_score else 3.0
+        """
+        Score academic fit (0-1 scale) based on student GPA vs university avg BAC score.
+        Converts student GPA (0-4 scale) to BAC equivalent (0-10 scale) for comparison.
+        """
+        # Use only avg_bac_score from university
+        if not university.avg_bac_score:
+            # No BAC score data, return neutral score
+            return 0.5
         
         if not profile.gpa:
+            # No student GPA, return neutral score
             return 0.5
         
-        gpa_diff = profile.gpa - uni_avg_gpa
+        # Convert student GPA (0-4) to BAC score equivalent (0-10)
+        # Standard conversion: 4.0 GPA = 10.0 BAC
+        student_bac_equivalent = profile.gpa * 2.5
         
-        # GPA scoring
-        if gpa_diff >= 0.3:
+        # Calculate normalized difference (0-10 scale)
+        bac_diff = student_bac_equivalent - university.avg_bac_score
+        
+        # Normalize to 0-1 scale based on BAC score difference
+        # Perfect score when student is 1+ point above average
+        if bac_diff >= 1.0:
             return 1.0
-        elif gpa_diff >= 0.0:
-            return 0.9
-        elif gpa_diff >= -0.2:
+        elif bac_diff >= 0.5:
+            return 0.95
+        elif bac_diff >= 0.0:
+            return 0.85
+        elif bac_diff >= -0.5:
             return 0.7
-        elif gpa_diff >= -0.4:
+        elif bac_diff >= -1.0:
             return 0.5
+        elif bac_diff >= -1.5:
+            return 0.35
         else:
-            return 0.3
+            return 0.2
     
     def _score_specialization_fit(
         self, 
@@ -611,21 +627,22 @@ class RefinedMatchingEngine:
         program: ProgramDB
     ) -> str:
         """Determine if program is safety, target, or reach."""
-        if not profile.gpa:
+        if not profile.gpa or not university.avg_bac_score:
             return "target"
         
-        uni_avg_gpa = (university.avg_bac_score / 2.5) if university.avg_bac_score else 3.0
-        gpa_diff = profile.gpa - uni_avg_gpa
+        # Convert student GPA (0-4) to BAC score equivalent (0-10)
+        student_bac_equivalent = profile.gpa * 2.5
+        bac_diff = student_bac_equivalent - university.avg_bac_score
         
         # Consider program strength rating
         is_competitive = program.strength_rating and program.strength_rating >= 8.5
         
-        # Determine match type
-        if gpa_diff >= 0.3 and not is_competitive:
+        # Determine match type based on BAC score difference
+        if bac_diff >= 1.0 and not is_competitive:
             return "safety"
-        elif gpa_diff >= 0.1 and not is_competitive:
+        elif bac_diff >= 0.3 and not is_competitive:
             return "target"
-        elif gpa_diff >= -0.2:
+        elif bac_diff >= -0.5:
             return "target"
         else:
             return "reach"

@@ -670,8 +670,8 @@ async def submit_extended_quiz(submission: ExtendedQuizSubmission):
             
             extended.process_response(answer.question_id, formatted_answer)
         
-        # Get refined profile
-        refined_profile = extended.get_extended_profile()
+        # Get refined profile (access attribute directly, not a method)
+        refined_profile = extended.extended_profile
         
         # Get program-level matches
         matcher = RefinedMatchingEngine()
