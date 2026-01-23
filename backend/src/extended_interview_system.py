@@ -116,14 +116,18 @@ class ExtendedInterviewSystem:
             return self._get_engineering_questions()
         elif field == FieldOfInterest.BUSINESS:
             return self._get_business_questions()
-        elif field == FieldOfInterest.STEM:
+        elif field in (FieldOfInterest.STEM, FieldOfInterest.SCIENCE):
             return self._get_stem_questions()
-        elif field == FieldOfInterest.HEALTH_MEDICAL:
+        elif field in (FieldOfInterest.HEALTH_MEDICAL, FieldOfInterest.MEDICINE):
             return self._get_medical_questions()
         elif field == FieldOfInterest.ARTS_HUMANITIES:
             return self._get_arts_humanities_questions()
         elif field == FieldOfInterest.SOCIAL_SCIENCES:
             return self._get_social_sciences_questions()
+        elif field == FieldOfInterest.IT:
+            return self._get_engineering_questions()  # IT similar to engineering
+        elif field == FieldOfInterest.LAW:
+            return self._get_social_sciences_questions()  # Law similar to social sciences
         else:
             return self._get_generic_specialization_questions()
     

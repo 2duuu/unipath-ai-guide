@@ -17,6 +17,7 @@ class AcademicLevel(str, Enum):
 class FieldOfInterest(str, Enum):
     """Academic fields of interest."""
     STEM = "stem"
+    SCIENCE = "science"
     BUSINESS = "business"
     ARTS_HUMANITIES = "arts_humanities"
     SOCIAL_SCIENCES = "social_sciences"
@@ -24,6 +25,8 @@ class FieldOfInterest(str, Enum):
     ENGINEERING = "engineering"
     LAW = "law"
     EDUCATION = "education"
+    IT = "it"
+    MEDICINE = "medicine"
     OTHER = "other"
 
 

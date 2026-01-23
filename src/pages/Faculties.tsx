@@ -26,13 +26,17 @@ interface University {
 
 const fieldTranslations: Record<string, string> = {
   "stem": "STEM",
+  "science": "Științe",
   "business": "Business & Economie",
   "arts_humanities": "Arte & Științe Umaniste",
   "medicine": "Medicină",
+  "health_medical": "Sănătate & Medicină",
   "law": "Drept",
   "social_sciences": "Științe Sociale",
   "engineering": "Inginerie",
   "it": "IT & Tehnologie",
+  "education": "Educație",
+  "other": "Altele",
 };
 
 const Faculties = () => {

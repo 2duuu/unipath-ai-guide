@@ -551,7 +551,12 @@ async def submit_initial_quiz(submission: InitialQuizSubmission):
             "matches": serialized_matches
         }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        import traceback
+        error_msg = str(e)
+        error_trace = traceback.format_exc()
+        print(f"ERROR in submit_initial_quiz: {error_msg}")
+        print(f"TRACEBACK: {error_trace}")
+        raise HTTPException(status_code=500, detail=f"Error: {error_msg}\nTrace: {error_trace}")
     finally:
         db.close()
 

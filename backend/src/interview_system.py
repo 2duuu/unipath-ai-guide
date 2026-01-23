@@ -7,6 +7,31 @@ from .models import (
 )
 
 
+# Field normalization mapping - converts various field names to canonical enum values
+FIELD_NORMALIZATION_MAP = {
+    # Exact matches (lowercase)
+    "stem": "stem",
+    "science": "science",
+    "business": "business",
+    "arts_humanities": "arts_humanities",
+    "arts": "arts_humanities",  # Alias
+    "humanities": "arts_humanities",  # Alias
+    "social_sciences": "social_sciences",
+    "health_medical": "health_medical",
+    "health": "health_medical",  # Alias
+    "medical": "health_medical",  # Alias
+    "medicine": "medicine",
+    "engineering": "engineering",
+    "it": "it",
+    "technology": "it",  # Alias
+    "law": "law",
+    "education": "education",
+    "other": "other",
+    # Design maps to arts_humanities
+    "design": "arts_humanities",
+}
+
+
 class InterviewSystem:
     """Handles interviewing students to build their profile."""
     
@@ -38,22 +63,28 @@ class InterviewSystem:
                 "field": "fields_of_interest",
                 "options": [
                     "stem",
+                    "science",
                     "business",
                     "arts_humanities",
                     "social_sciences",
                     "health_medical",
+                    "medicine",
                     "engineering",
+                    "it",
                     "law",
                     "education",
                     "other"
                 ],
                 "descriptions": {
                     "stem": "STEM (Science, Technology, Engineering, Mathematics)",
+                    "science": "Science",
                     "business": "Business & Management",
                     "arts_humanities": "Arts & Humanities",
                     "social_sciences": "Social Sciences",
                     "health_medical": "Health & Medical",
+                    "medicine": "Medicine",
                     "engineering": "Engineering",
+                    "it": "IT & Technology",
                     "law": "Law",
                     "education": "Education",
                     "other": "Other"
@@ -213,10 +244,28 @@ Start by introducing yourself and asking their name."""
                     setattr(self.profile, field, response_lower)
             # Handle multiple choice fields (for fields_of_interest)
             elif question["type"] == "multiple_choice":
-                values = [v.strip().lower() for v in response.split(",")]
-                # Convert to FieldOfInterest enum list
-                enum_values = [FieldOfInterest(v) for v in values if v]
-                setattr(self.profile, field, enum_values)
+                # Handle both string and array inputs
+                if isinstance(response, list):
+                    values = response
+                else:
+                    values = [v.strip().lower() for v in response.split(",")]
+                
+                # Normalize field names and convert to FieldOfInterest enum list
+                normalized_values = []
+                for v in values:
+                    v_str = str(v).strip().lower()
+                    if v_str:
+                        # Normalize the field name
+                        normalized = FIELD_NORMALIZATION_MAP.get(v_str, v_str)
+                        # Create enum from normalized value
+                        try:
+                            normalized_values.append(FieldOfInterest(normalized))
+                        except ValueError:
+                            # If normalization fails, log and skip
+                            pass
+                setattr(self.profile, field, normalized_values)
+
+
             
             return True
         except (ValueError, KeyError, AttributeError) as e:

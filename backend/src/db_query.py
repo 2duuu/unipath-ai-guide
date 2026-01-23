@@ -7,11 +7,41 @@ from .database import SessionLocal, UniversityDB, ProgramDB, AdmissionCriteriaDB
 from .models import University, FieldOfInterest, LocationPreference, UserProfile
 
 
+# Field normalization mapping - converts various field names to canonical enum values
+FIELD_NORMALIZATION_MAP = {
+    # Exact matches (lowercase)
+    "stem": "stem",
+    "science": "science",
+    "business": "business",
+    "arts_humanities": "arts_humanities",
+    "arts": "arts_humanities",  # Alias
+    "humanities": "arts_humanities",  # Alias
+    "social_sciences": "social_sciences",
+    "health_medical": "health_medical",
+    "health": "health_medical",  # Alias
+    "medical": "health_medical",  # Alias
+    "medicine": "medicine",
+    "engineering": "engineering",
+    "it": "it",
+    "technology": "it",  # Alias
+    "law": "law",
+    "education": "education",
+    "other": "other",
+    # Design maps to arts_humanities
+    "design": "arts_humanities",
+}
+
+
 class UniversityDatabaseQuery:
     """Query interface for university database."""
     
     def __init__(self):
         self.db = SessionLocal()
+    
+    def _normalize_field(self, field: str) -> str:
+        """Normalize field name to canonical enum value."""
+        normalized = FIELD_NORMALIZATION_MAP.get(field.lower(), field.lower())
+        return normalized
     
     def get_all_universities(self) -> List[University]:
         """Get all universities as model objects."""
@@ -28,8 +58,15 @@ class UniversityDatabaseQuery:
     def search_by_program(self, field: FieldOfInterest) -> List[University]:
         """Search universities offering specific field/program."""
         field_value = field.value if hasattr(field, 'value') else str(field)
+        # Normalize the field value to match database
+        normalized_field = self._normalize_field(field_value)
+        
+        # Query by the normalized field, or the original if it exists in DB
         db_unis = self.db.query(UniversityDB).join(ProgramDB).filter(
-            ProgramDB.field == field_value
+            or_(
+                ProgramDB.field == normalized_field,
+                ProgramDB.field == field_value
+            )
         ).distinct().all()
         return [self._convert_to_model(uni) for uni in db_unis]
     
@@ -71,8 +108,11 @@ class UniversityDatabaseQuery:
         # Filter by fields
         if fields:
             field_values = [f.value for f in fields]
+            normalized_fields = [self._normalize_field(fv) for fv in field_values]
+            # Include both normalized and original field values in the query
+            all_field_values = list(set(field_values + normalized_fields))
             query = query.join(ProgramDB).filter(
-                ProgramDB.field.in_(field_values)
+                ProgramDB.field.in_(all_field_values)
             ).distinct()
         
         # Filter by tuition (EU students)
@@ -133,7 +173,14 @@ class UniversityDatabaseQuery:
             List of ProgramDB objects
         """
         field_value = field.value if hasattr(field, 'value') else str(field)
-        query = self.db.query(ProgramDB).filter(ProgramDB.field == field_value)
+        normalized_field = self._normalize_field(field_value)
+        # Query with both normalized and original field values
+        query = self.db.query(ProgramDB).filter(
+            or_(
+                ProgramDB.field == normalized_field,
+                ProgramDB.field == field_value
+            )
+        )
         
         if degree_level:
             query = query.filter(ProgramDB.degree_level == degree_level)
@@ -331,14 +378,16 @@ class UniversityDatabaseQuery:
     
     def _convert_to_model(self, db_uni: UniversityDB) -> University:
         """Convert database model to Pydantic model for compatibility."""
+        import json
+        
         # Get programs for strong_programs field
         programs = self.db.query(ProgramDB).filter(
             ProgramDB.university_id == db_uni.id
         ).all()
         
-        # Extract unique fields from programs
+        # Extract unique fields from programs - NORMALIZE field values before creating enum
         strong_programs = list(set([
-            FieldOfInterest(p.field) for p in programs if p.field
+            FieldOfInterest(self._normalize_field(p.field)) for p in programs if p.field
         ]))
         
         # Estimate SAT/ACT ranges (Romanian unis typically don't require these)
@@ -371,6 +420,30 @@ class UniversityDatabaseQuery:
             # Rough conversion: 1 EUR ≈ 5 RON (approximate)
             tuition_eur = db_uni.tuition_annual_ron / 5
         
+        # Parse application_requirements from JSON string
+        application_requirements = [
+            "High school diploma or equivalent",
+            "Baccalaureate results",
+            "Language proficiency (if applicable)",
+            "Application form"
+        ]
+        if db_uni.application_requirements:
+            try:
+                application_requirements = json.loads(db_uni.application_requirements)
+            except (json.JSONDecodeError, TypeError):
+                pass  # Use default if parsing fails
+        
+        # Parse deadlines from JSON string
+        deadlines = {
+            "regular": "July 15",
+            "international": "September 1"
+        }
+        if db_uni.deadlines:
+            try:
+                deadlines = json.loads(db_uni.deadlines)
+            except (json.JSONDecodeError, TypeError):
+                pass  # Use default if parsing fails
+        
         return University(
             name=db_uni.name,
             location=f"{db_uni.city}, {country}",
@@ -383,16 +456,8 @@ class UniversityDatabaseQuery:
             strong_programs=strong_programs,
             size=db_uni.size or "medium",
             description=db_uni.description_en or db_uni.description or "Romanian university",
-            application_requirements=db_uni.application_requirements or [
-                "High school diploma or equivalent",
-                "Baccalaureate results",
-                "Language proficiency (if applicable)",
-                "Application form"
-            ],
-            deadlines=db_uni.deadlines or {
-                "regular": "July 15",
-                "international": "September 1"
-            }
+            application_requirements=application_requirements,
+            deadlines=deadlines
         )
     
     def get_statistics(self) -> dict:
