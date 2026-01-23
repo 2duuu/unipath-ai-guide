@@ -1,3 +1,15 @@
+## 🚀 Quick Start
+
+```bash
+# Clone the repository
+git clone <repository-url>
+
+# Checkout the landing_page branch
+git checkout landing_page
+```
+
+---
+
 # 🎓 UniHub - AI-Powered Academic Guidance Platform
 
 ![UniHub](https://img.shields.io/badge/Status-Active%20Development-green)
