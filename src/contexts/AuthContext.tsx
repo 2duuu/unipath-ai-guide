@@ -4,8 +4,8 @@ import { authService, User, LoginRequest, RegisterRequest } from '@/services/aut
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  login: (data: LoginRequest) => Promise<void>;
-  register: (data: RegisterRequest) => Promise<void>;
+  login: (data: LoginRequest) => Promise<User>;
+  register: (data: RegisterRequest) => Promise<User>;
   logout: () => void;
   isAuthenticated: boolean;
 }
@@ -50,6 +50,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       const response = await authService.login(data);
       setUser(response.user);
+      return response.user;
     } catch (error) {
       throw error;
     }
@@ -59,6 +60,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       const response = await authService.register(data);
       setUser(response.user);
+      return response.user;
     } catch (error) {
       throw error;
     }

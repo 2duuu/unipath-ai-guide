@@ -193,13 +193,23 @@ class UniversityDatabaseQuery:
         if language:
             query = query.filter(ProgramDB.language.ilike(f"%{language}%"))
         
-        # Filter by tuition (convert USD to EUR approximately)
+        # Filter by tuition - prioritize program-specific tuition, fallback to university
         if max_tuition_usd:
             max_tuition_eur = int(max_tuition_usd / 1.1)
             query = query.filter(
                 or_(
-                    UniversityDB.tuition_eu <= max_tuition_eur,
-                    UniversityDB.tuition_annual_eur <= max_tuition_eur
+                    # Program-specific tuition
+                    ProgramDB.tuition_annual_usd <= max_tuition_usd,
+                    ProgramDB.tuition_annual_eur <= max_tuition_eur,
+                    # Fallback to university tuition if program tuition not set
+                    and_(
+                        ProgramDB.tuition_annual_usd == None,
+                        ProgramDB.tuition_annual_eur == None,
+                        or_(
+                            UniversityDB.tuition_eu <= max_tuition_eur,
+                            UniversityDB.tuition_annual_eur <= max_tuition_eur
+                        )
+                    )
                 )
             )
         

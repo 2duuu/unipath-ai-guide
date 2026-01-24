@@ -96,6 +96,15 @@ class ProgramDB(Base):
     # Program strength
     strength_rating = Column(Float)  # 1-10 scale
     accreditation = Column(JSON)  # List of accreditations
+    
+    # Program-specific admission criteria
+    avg_bac_score = Column(Float, nullable=True)  # Average BAC score for this program
+    min_bac_score = Column(Float, nullable=True)  # Minimum BAC score for admission
+    
+    # Program-specific tuition
+    tuition_annual_ron = Column(Integer, nullable=True)  # Romanian Lei
+    tuition_annual_eur = Column(Integer, nullable=True)  # Euros
+    tuition_annual_usd = Column(Integer, nullable=True)  # USD
 
      # Teaching and international opportunities (for extended profile matching)
     teaching_format = Column(JSON, nullable=True)  # Array of teaching formats: ["traditional_lectures", "project_based"]
@@ -103,7 +112,6 @@ class ProgramDB(Base):
     
     # Requirements
     specific_requirements = Column(JSON)
-    min_bac_score = Column(Float)
     required_subjects = Column(JSON)  # For Baccalaureate
     
     description = Column(Text)

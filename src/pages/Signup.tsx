@@ -1,16 +1,20 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { autoSavePendingQuiz } from '@/utils/autoSavePendingQuiz';
+import { hasPendingQuiz } from '@/utils/pendingQuiz';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2 } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 export default function Signup() {
   const navigate = useNavigate();
   const { register } = useAuth();
+  const { toast } = useToast();
   const [formData, setFormData] = useState({
     username: '',
     email: '',
@@ -50,8 +54,31 @@ export default function Signup() {
 
     try {
       const { confirmPassword, ...registerData } = formData;
-      await register(registerData);
-      navigate('/');
+      const userData = await register(registerData);
+      
+      // Check if there's a pending quiz to save
+      if (hasPendingQuiz() && userData?.id) {
+        const result = await autoSavePendingQuiz(userData.id);
+        
+        if (result.success) {
+          toast({
+            title: 'Quiz Saved!',
+            description: result.message,
+          });
+          navigate('/cont'); // Redirect to account page
+        } else if (result.error) {
+          toast({
+            title: 'Warning',
+            description: result.error,
+            variant: 'destructive',
+          });
+          navigate('/cont'); // Still redirect to account page
+        } else {
+          navigate('/'); // No pending quiz, go to home
+        }
+      } else {
+        navigate('/'); // No pending quiz, go to home
+      }
     } catch (err: any) {
       setError(err.message || 'Registration failed. Please try again.');
     } finally {

@@ -41,7 +41,7 @@ class RefinedMatchingEngine:
         
         # 1. Base Academic Fit (23 points)
         if profile.gpa:
-            gpa_score = self._score_academic_fit(profile, university)
+            gpa_score = self._score_academic_fit(profile, program)
             score += gpa_score * 23
             
             if gpa_score > 0.8:
@@ -99,7 +99,8 @@ class RefinedMatchingEngine:
         
         # 7. Budget Fit (6 points)
         if profile.budget_max:
-            tuition_usd = (university.tuition_eu or 2000) * 1.1
+            # Use program-specific tuition, fallback to university average
+            tuition_usd = program.tuition_annual_usd or (program.tuition_annual_eur or (university.tuition_eu or 2000) * 1.1)
             if tuition_usd <= profile.budget_max:
                 score += 6
                 reasoning_parts.append("within budget")
@@ -113,20 +114,20 @@ class RefinedMatchingEngine:
         
         # Determine match type based on academic fit and program competitiveness
         match_type = self._determine_program_match_type(
-            profile, university, program
+            profile, program
         )
         
         reasoning = f"This is a {match_type} program. " + ", ".join(reasoning_parts) if reasoning_parts else f"This is a {match_type} program."
         
         return score, match_type, reasoning
     
-    def _score_academic_fit(self, profile: UserProfile, university: UniversityDB) -> float:
+    def _score_academic_fit(self, profile: UserProfile, program: ProgramDB) -> float:
         """
-        Score academic fit (0-1 scale) based on student GPA vs university avg BAC score.
+        Score academic fit (0-1 scale) based on student GPA vs program avg BAC score.
         Converts student GPA (0-4 scale) to BAC equivalent (0-10 scale) for comparison.
         """
-        # Use only avg_bac_score from university
-        if not university.avg_bac_score:
+        # Use program-specific avg_bac_score
+        if not program.avg_bac_score:
             # No BAC score data, return neutral score
             return 0.5
         
@@ -139,7 +140,7 @@ class RefinedMatchingEngine:
         student_bac_equivalent = profile.gpa * 2.5
         
         # Calculate normalized difference (0-10 scale)
-        bac_diff = student_bac_equivalent - university.avg_bac_score
+        bac_diff = student_bac_equivalent - program.avg_bac_score
         
         # Normalize to 0-1 scale based on BAC score difference
         # Perfect score when student is 1+ point above average
@@ -623,16 +624,15 @@ class RefinedMatchingEngine:
     def _determine_program_match_type(
         self,
         profile: UserProfile,
-        university: UniversityDB,
         program: ProgramDB
     ) -> str:
         """Determine if program is safety, target, or reach."""
-        if not profile.gpa or not university.avg_bac_score:
+        if not profile.gpa or not program.avg_bac_score:
             return "target"
         
         # Convert student GPA (0-4) to BAC score equivalent (0-10)
         student_bac_equivalent = profile.gpa * 2.5
-        bac_diff = student_bac_equivalent - university.avg_bac_score
+        bac_diff = student_bac_equivalent - program.avg_bac_score
         
         # Consider program strength rating
         is_competitive = program.strength_rating and program.strength_rating >= 8.5
@@ -702,8 +702,10 @@ class RefinedMatchingEngine:
                 profile, extended_profile, program, university
             )
             
-            # Convert tuition to USD
-            tuition_usd = int((university.tuition_eu or 2000) * 1.1)
+            # Convert tuition to USD - use program-specific tuition
+            tuition_usd = program.tuition_annual_usd or (program.tuition_annual_eur or (university.tuition_eu or 2000)) * 1.1
+            if isinstance(tuition_usd, float):
+                tuition_usd = int(tuition_usd)
             
             match = ProgramMatch(
                 university_name=university.name,

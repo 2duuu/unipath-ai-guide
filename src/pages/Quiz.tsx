@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   getInitialQuestions,
   submitInitialQuiz,
@@ -8,6 +9,7 @@ import {
   saveQuizAttempt,
 } from '@/services/api';
 import { useAuth } from '@/contexts/AuthContext';
+import { savePendingQuiz } from '@/utils/pendingQuiz';
 import type {
   Question,
   Answer,
@@ -21,6 +23,7 @@ import './Quiz.css';
 
 export default function Quiz() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   
   // State management
   const [step, setStep] = useState<'initial' | 'results' | 'extended' | 'program-results' | 'feedback'>('initial');
@@ -139,7 +142,14 @@ export default function Quiz() {
 
   const handleSaveQuizAttempt = async (quizType: 'initial' | 'extended') => {
     if (!user?.id) {
-      alert('Please log in to save your quiz');
+      // Save quiz data to localStorage and redirect to login
+      savePendingQuiz({
+        quizType,
+        answers,
+        matches,
+        profileId,
+      });
+      navigate('/login?redirect=quiz-save');
       return;
     }
 
