@@ -238,21 +238,6 @@ class MatchingEngine:
         
         return 0.5  # Default neutral
     
-    def _score_test(self, student_score: int, uni_range: Tuple[int, int], act: bool = False) -> float:
-        """Score test score match (0-1 scale). Used for match type determination."""
-        min_score, max_score = uni_range
-        
-        if student_score >= max_score:
-            return 1.0
-        elif student_score >= (max_score + min_score) / 2:
-            return 0.9
-        elif student_score >= min_score:
-            return 0.7
-        elif student_score >= min_score * 0.9:
-            return 0.4
-        else:
-            return 0.2
-    
     def _determine_match_type(self, profile: UserProfile, university: University) -> str:
         """Determine if university is a safety, target, or reach based on academic level."""
         # Get student GPA (from academic_level estimate or actual GPA)
@@ -273,30 +258,22 @@ class MatchingEngine:
         uni_avg_gpa = university.avg_gpa or 3.0
         gpa_diff = student_gpa - uni_avg_gpa
         
-        # Check test scores if available
-        test_match = "target"
-        if profile.sat_score and university.sat_range:
-            if profile.sat_score >= university.sat_range[1]:
-                test_match = "safety"
-            elif profile.sat_score < university.sat_range[0]:
-                test_match = "reach"
-        elif profile.act_score and university.act_range:
-            if profile.act_score >= university.act_range[1]:
-                test_match = "safety"
-            elif profile.act_score < university.act_range[0]:
-                test_match = "reach"
-        
-        # Combine GPA and test assessment
-        if gpa_diff >= 0.1 and test_match in ["safety", "target"]:
+        # Determine based on GPA difference
+        if gpa_diff >= 0.2:
             return "safety"
-        elif gpa_diff <= -0.2 or test_match == "reach":
+        elif gpa_diff <= -0.3:
             return "reach"
         else:
             return "target"
     
     def find_matches(self, profile: UserProfile, limit: int = 10) -> List[UniversityMatch]:
         """Find matching universities for a student profile."""
-        universities = self.get_all_universities()
+        # Apply language filtering if preference is set
+        language_pref = None
+        if profile.language_preference:
+            language_pref = profile.language_preference.value if hasattr(profile.language_preference, 'value') else str(profile.language_preference)
+        
+        universities = self.db_query.get_all_universities(language_preference=language_pref)
         matches = []
         
         for uni in universities:

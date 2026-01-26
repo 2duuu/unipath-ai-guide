@@ -13,9 +13,43 @@ class UniversityDatabaseQuery:
     def __init__(self):
         self.db = SessionLocal()
     
-    def get_all_universities(self) -> List[University]:
-        """Get all universities as model objects."""
-        db_unis = self.db.query(UniversityDB).all()
+    def get_all_universities(self, language_preference: Optional[str] = None) -> List[University]:
+        """Get all universities as model objects, optionally filtered by language.
+        
+        Args:
+            language_preference: Filter by language preference (english_only, romanian_only, either, multilingual)
+        """
+        query = self.db.query(UniversityDB)
+        
+        # Apply language filtering at SQL level
+        if language_preference:
+            if language_preference == "english_only":
+                # Check if "English" exists in JSON array (case-insensitive)
+                query = query.filter(
+                    UniversityDB.languages_offered.contains('"English"')
+                )
+            elif language_preference == "romanian_only":
+                # Check if "Romanian" exists in JSON array (case-insensitive)
+                query = query.filter(
+                    UniversityDB.languages_offered.contains('"Romanian"')
+                )
+            elif language_preference == "either":
+                # Accept universities offering Romanian OR English
+                query = query.filter(
+                    or_(
+                        UniversityDB.languages_offered.contains('"Romanian"'),
+                        UniversityDB.languages_offered.contains('"English"')
+                    )
+                )
+            elif language_preference == "multilingual":
+                # Accept universities with more than 1 language
+                # SQLite json_array_length function
+                from sqlalchemy import func
+                query = query.filter(
+                    func.json_array_length(UniversityDB.languages_offered) > 1
+                )
+        
+        db_unis = query.all()
         return [self._convert_to_model(uni) for uni in db_unis]
     
     def search_by_city(self, city: str) -> List[University]:
@@ -34,14 +68,20 @@ class UniversityDatabaseQuery:
         return [self._convert_to_model(uni) for uni in db_unis]
     
     def filter_by_tuition(self, max_tuition_eur: int, is_eu_student: bool = True) -> List[University]:
-        """Filter universities by tuition budget."""
+        """Filter universities by tuition budget (in EUR)."""
         if is_eu_student:
             db_unis = self.db.query(UniversityDB).filter(
-                UniversityDB.tuition_eu <= max_tuition_eur
+                or_(
+                    UniversityDB.tuition_eu <= max_tuition_eur,
+                    UniversityDB.tuition_annual_eur <= max_tuition_eur
+                )
             ).all()
         else:
             db_unis = self.db.query(UniversityDB).filter(
-                UniversityDB.tuition_non_eu <= max_tuition_eur
+                or_(
+                    UniversityDB.tuition_non_eu <= max_tuition_eur,
+                    UniversityDB.tuition_annual_eur <= max_tuition_eur
+                )
             ).all()
         return [self._convert_to_model(uni) for uni in db_unis]
     
@@ -185,25 +225,45 @@ class UniversityDatabaseQuery:
             ]
             query = query.filter(or_(*keyword_filters))
         
-        # Filter by degree level
+        # Filter by degree level (case-insensitive)
         if degree_level:
-            query = query.filter(ProgramDB.degree_level == degree_level)
+            from sqlalchemy import func
+            query = query.filter(func.lower(ProgramDB.degree_level) == degree_level.lower())
         
         # Filter by language
         if language:
-            query = query.filter(ProgramDB.language.ilike(f"%{language}%"))
+            if language == "english_only":
+                query = query.filter(ProgramDB.language.ilike('%english%'))
+            elif language == "romanian_only":
+                query = query.filter(ProgramDB.language.ilike('%romanian%'))
+            elif language == "either":
+                # Accept programs in Romanian OR English
+                query = query.filter(
+                    or_(
+                        ProgramDB.language.ilike('%romanian%'),
+                        ProgramDB.language.ilike('%english%')
+                    )
+                )
+            elif language == "multilingual":
+                # Accept programs from universities with > 1 language
+                from sqlalchemy import func
+                query = query.filter(
+                    func.json_array_length(UniversityDB.languages_offered) > 1
+                )
+            else:
+                # Fallback for backwards compatibility (if raw language like "English" is passed)
+                query = query.filter(ProgramDB.language.ilike(f"%{language}%"))
         
-        # Filter by tuition - prioritize program-specific tuition, fallback to university
+        # Filter by tuition (EUR only)
         if max_tuition_usd:
-            max_tuition_eur = int(max_tuition_usd / 1.1)
+            # Parameter name kept for compatibility, but now expects EUR
+            max_tuition_eur = max_tuition_usd
             query = query.filter(
                 or_(
                     # Program-specific tuition
-                    ProgramDB.tuition_annual_usd <= max_tuition_usd,
                     ProgramDB.tuition_annual_eur <= max_tuition_eur,
                     # Fallback to university tuition if program tuition not set
                     and_(
-                        ProgramDB.tuition_annual_usd == None,
                         ProgramDB.tuition_annual_eur == None,
                         or_(
                             UniversityDB.tuition_eu <= max_tuition_eur,
@@ -351,16 +411,11 @@ class UniversityDatabaseQuery:
             FieldOfInterest(p.field) for p in programs if p.field
         ]))
         
-        # Estimate SAT/ACT ranges (Romanian unis typically don't require these)
-        # Using conservative estimates
-        sat_range = (db_uni.sat_min or 1200, db_uni.sat_max or 1500)
-        act_range = (db_uni.act_min or 25, db_uni.act_max or 33)
+        # Get tuition in EUR
+        tuition_eur = db_uni.tuition_annual_eur or db_uni.tuition_eu or 0
         
-        # Convert tuition to USD (approximate EUR to USD conversion ~1.1)
-        tuition_usd = db_uni.tuition_annual_usd or (db_uni.tuition_eu or 2000) * 1.1
-        
-        # Estimate GPA from BAC score (Romanian BAC is 1-10 scale, GPA is 0-4)
-        avg_gpa = (db_uni.avg_bac_score / 2.5) if db_uni.avg_bac_score else 3.5
+        # Use avg_gpa directly from database (already in 0-4 scale)
+        avg_gpa = db_uni.avg_gpa if db_uni.avg_gpa else 3.0
         
         # Map country to LocationPreference enum for University model compatibility
         # Note: This is for backward compatibility. Actual matching uses country field.
@@ -375,21 +430,13 @@ class UniversityDatabaseQuery:
         else:
             location_type_enum = LocationPreference.OUTSIDE_EUROPE
         
-        # Convert tuition to EUR for budget matching (prefer EUR field)
-        tuition_eur = db_uni.tuition_annual_eur or db_uni.tuition_eu
-        if not tuition_eur and db_uni.tuition_annual_ron:
-            # Rough conversion: 1 EUR ≈ 5 RON (approximate)
-            tuition_eur = db_uni.tuition_annual_ron / 5
-        
         return University(
             name=db_uni.name,
             location=f"{db_uni.city}, {country}",
             location_type=location_type_enum,  # For compatibility, but matching uses country from location string
             acceptance_rate=db_uni.acceptance_rate or 0.3,  # Default 30% if unknown
             avg_gpa=avg_gpa,
-            sat_range=sat_range,
-            act_range=act_range,
-            tuition_annual=int(tuition_eur or tuition_usd or 0),  # Use EUR if available, else USD
+            tuition_annual=int(tuition_eur),  # EUR
             strong_programs=strong_programs,
             size=db_uni.size or "medium",
             description=db_uni.description_en or db_uni.description or "Romanian university",
@@ -402,7 +449,8 @@ class UniversityDatabaseQuery:
             deadlines=db_uni.deadlines or {
                 "regular": "July 15",
                 "international": "September 1"
-            }
+            },
+            languages_offered=db_uni.languages_offered or []
         )
     
     def get_statistics(self) -> dict:

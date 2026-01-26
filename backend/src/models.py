@@ -73,8 +73,6 @@ class UserProfile(BaseModel):
     name: Optional[str] = None  # Basic identification (not in 7 core questions but needed)
     age: Optional[int] = None  # Basic identification (not in 7 core questions but needed)
     gpa: Optional[float] = Field(None, ge=0.0, le=4.0)  # Can be derived from academic_level, kept for accuracy
-    sat_score: Optional[int] = Field(None, ge=400, le=1600)  # Optional, used in matching
-    act_score: Optional[int] = Field(None, ge=1, le=36)  # Optional, used in matching
     # 7 Core Questions:
     fields_of_interest: List[FieldOfInterest] = []  # Q1: 30 points
     career_focus: Optional[CareerFocus] = None  # Q2: 10 points
@@ -99,14 +97,13 @@ class University(BaseModel):
     location_type: LocationPreference
     acceptance_rate: float = Field(ge=0.0, le=1.0)
     avg_gpa: float = Field(ge=0.0, le=4.0)
-    sat_range: tuple[int, int]  # (min, max)
-    act_range: tuple[int, int]  # (min, max)
-    tuition_annual: int  # Annual tuition (prefer EUR for matching, may be USD in legacy data)
+    tuition_annual: int  # Annual tuition in EUR
     strong_programs: List[FieldOfInterest]
     size: str  # small, medium, large
     description: str
     application_requirements: List[str]
     deadlines: Dict[str, str]  # e.g., {"early_decision": "Nov 1", "regular": "Jan 1"}
+    languages_offered: Optional[List[str]] = None  # ["Romanian", "English", "French"]
     
     class Config:
         use_enum_values = True
@@ -165,7 +162,7 @@ class ProgramMatch(BaseModel):
     degree_level: str  # bachelor, master, phd
     language: str
     duration_years: int
-    tuition_annual: int  # USD
+    tuition_annual: int  # EUR
     match_score: float = Field(ge=0.0, le=100.0)
     reasoning: str
     match_type: str  # "safety", "target", "reach"

@@ -203,8 +203,6 @@ def save_profile_to_db(profile: UserProfile, matched_unis: list = None) -> int:
             name=profile.name or "Anonymous",
             age=profile.age,
             gpa=profile.gpa,
-            sat_score=profile.sat_score,
-            act_score=profile.act_score,
             fields_of_interest=fields_json,  # JSON field
             career_focus=profile.career_focus.value if profile.career_focus and hasattr(profile.career_focus, 'value') else str(profile.career_focus) if profile.career_focus else None,
             learning_style=profile.learning_style.value if profile.learning_style and hasattr(profile.learning_style, 'value') else str(profile.learning_style) if profile.learning_style else None,
@@ -630,8 +628,7 @@ async def submit_extended_quiz(submission: ExtendedQuizSubmission):
             profile.name = student.name
             profile.age = student.age
             profile.gpa = student.gpa
-            profile.sat_score = student.sat_score
-            profile.act_score = student.act_score
+            profile.budget_max = student.budget_max_eur  # Restore budget from database
             
             # Restore preferences dictionary
             profile.preferences = {}

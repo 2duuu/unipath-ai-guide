@@ -99,22 +99,22 @@ class RefinedMatchingEngine:
         
         # 7. Budget Fit (6 points)
         if profile.budget_max:
-            # Use program-specific tuition, fallback to university average
-            tuition_usd = program.tuition_annual_usd or (program.tuition_annual_eur or (university.tuition_eu or 2000) * 1.1)
-            if tuition_usd <= profile.budget_max:
+            # Use program-specific tuition, fallback to university average (all in EUR)
+            tuition_eur = program.tuition_annual_eur or university.tuition_eu or 2000
+            if tuition_eur <= profile.budget_max:
                 score += 6
                 reasoning_parts.append("within budget")
             else:
-                budget_diff = int(tuition_usd - profile.budget_max)
+                budget_diff = int(tuition_eur - profile.budget_max)
                 if budget_diff < 2000:
                     score += 3
                     reasoning_parts.append("slightly over budget")
                 else:
-                    reasoning_parts.append(f"${budget_diff:,} over budget")
+                    reasoning_parts.append(f"€{budget_diff:,} over budget")
         
         # Determine match type based on academic fit and program competitiveness
         match_type = self._determine_program_match_type(
-            profile, program
+            profile, program, university
         )
         
         reasoning = f"This is a {match_type} program. " + ", ".join(reasoning_parts) if reasoning_parts else f"This is a {match_type} program."
@@ -123,38 +123,34 @@ class RefinedMatchingEngine:
     
     def _score_academic_fit(self, profile: UserProfile, program: ProgramDB) -> float:
         """
-        Score academic fit (0-1 scale) based on student GPA vs program avg BAC score.
-        Converts student GPA (0-4 scale) to BAC equivalent (0-10 scale) for comparison.
+        Score academic fit (0-1 scale) based on student GPA vs program avg GPA.
+        Both are on 0-4 scale.
         """
-        # Use program-specific avg_bac_score
-        if not program.avg_bac_score:
-            # No BAC score data, return neutral score
+        # Use program-specific avg_gpa
+        if not program.avg_gpa:
+            # No GPA data, return neutral score
             return 0.5
         
         if not profile.gpa:
             # No student GPA, return neutral score
             return 0.5
         
-        # Convert student GPA (0-4) to BAC score equivalent (0-10)
-        # Standard conversion: 4.0 GPA = 10.0 BAC
-        student_bac_equivalent = profile.gpa * 2.5
+        # Calculate GPA difference (0-4 scale)
+        gpa_diff = profile.gpa - program.avg_gpa
         
-        # Calculate normalized difference (0-10 scale)
-        bac_diff = student_bac_equivalent - program.avg_bac_score
-        
-        # Normalize to 0-1 scale based on BAC score difference
-        # Perfect score when student is 1+ point above average
-        if bac_diff >= 1.0:
+        # Normalize to 0-1 scale based on GPA difference
+        # Perfect score when student is 0.4+ GPA points above average
+        if gpa_diff >= 0.4:
             return 1.0
-        elif bac_diff >= 0.5:
+        elif gpa_diff >= 0.2:
             return 0.95
-        elif bac_diff >= 0.0:
+        elif gpa_diff >= 0.0:
             return 0.85
-        elif bac_diff >= -0.5:
+        elif gpa_diff >= -0.2:
             return 0.7
-        elif bac_diff >= -1.0:
+        elif gpa_diff >= -0.4:
             return 0.5
-        elif bac_diff >= -1.5:
+        elif gpa_diff >= -0.6:
             return 0.35
         else:
             return 0.2
@@ -349,18 +345,19 @@ class RefinedMatchingEngine:
         # 4. Theory/Practice Balance (3 points total)
         theory_practice_score = 0.5  # Default if no preference
         if extended_profile.theory_practice_balance:
-            inferred_balance = self._infer_theory_practice_balance(program)
+            # Use database field if available, otherwise infer from program text
+            program_balance = program.theory_practice_balance if program.theory_practice_balance else self._infer_theory_practice_balance(program)
             user_balance = extended_profile.theory_practice_balance.lower()
             
-            if inferred_balance == user_balance:
+            if program_balance == user_balance:
                 theory_practice_score = 1.0  # Perfect match
-            elif (inferred_balance == "mostly_theory" and user_balance == "balanced") or \
-                 (inferred_balance == "balanced" and user_balance in ["mostly_theory", "applied_science"]) or \
-                 (inferred_balance == "applied_science" and user_balance in ["balanced", "industry_applications"]) or \
-                 (inferred_balance == "industry_applications" and user_balance == "applied_science"):
+            elif (program_balance == "mostly_theory" and user_balance == "balanced") or \
+                 (program_balance == "balanced" and user_balance in ["mostly_theory", "applied_science"]) or \
+                 (program_balance == "applied_science" and user_balance in ["balanced", "industry_applications"]) or \
+                 (program_balance == "industry_applications" and user_balance == "applied_science"):
                 theory_practice_score = 0.7  # Close match
-            elif (inferred_balance == "pure_theory" and user_balance == "industry_applications") or \
-                 (inferred_balance == "industry_applications" and user_balance == "pure_theory"):
+            elif (program_balance == "pure_theory" and user_balance == "industry_applications") or \
+                 (program_balance == "industry_applications" and user_balance == "pure_theory"):
                 theory_practice_score = 0.3  # Mismatch
             else:
                 theory_practice_score = 0.5  # Neutral
@@ -500,27 +497,19 @@ class RefinedMatchingEngine:
             return 0.6
         
         geo_focus = extended_profile.geographic_focus.lower()
-        opps = program.international_opportunities
         
-        # Count indicators of international opportunities
-        internships = opps.get("internships", False) if isinstance(opps, dict) else False
-        study_abroad = opps.get("study_abroad", False) if isinstance(opps, dict) else False
-        exchange_programs = opps.get("exchange_programs", False) if isinstance(opps, dict) else False
-        job_placement = opps.get("job_placement", None) if isinstance(opps, dict) else None
-        
-        # Count indicators
-        indicator_count = sum([internships, study_abroad, exchange_programs])
-        if job_placement == "high":
-            indicator_count += 2
-        elif job_placement == "medium":
-            indicator_count += 1
-        
-        # Determine opportunity strength
-        if indicator_count >= 3 or job_placement == "high":
-            opportunity_strength = "strong"
-        elif indicator_count >= 2 or job_placement == "medium":
-            opportunity_strength = "moderate"
+        # Get international opportunities level (high/medium/low)
+        if isinstance(program.international_opportunities, dict):
+            opps_level = program.international_opportunities.get("level", "medium")
         else:
+            opps_level = str(program.international_opportunities).lower()
+        
+        # Map opportunities level to strength
+        if opps_level == "high":
+            opportunity_strength = "strong"
+        elif opps_level == "medium":
+            opportunity_strength = "moderate"
+        else:  # "low" or other values
             opportunity_strength = "weak"
         
         # Score based on user preference
@@ -624,28 +613,51 @@ class RefinedMatchingEngine:
     def _determine_program_match_type(
         self,
         profile: UserProfile,
-        program: ProgramDB
+        program: ProgramDB,
+        university: UniversityDB
     ) -> str:
-        """Determine if program is safety, target, or reach."""
-        if not profile.gpa or not program.avg_bac_score:
+        """
+        Determine if program is safety, target, or reach.
+        Uses GPA difference and acceptance rate.
+        """
+        if not profile.gpa or not program.avg_gpa:
             return "target"
         
-        # Convert student GPA (0-4) to BAC score equivalent (0-10)
-        student_bac_equivalent = profile.gpa * 2.5
-        bac_diff = student_bac_equivalent - program.avg_bac_score
+        # Calculate GPA difference (0-4 scale)
+        gpa_diff = profile.gpa - program.avg_gpa
         
-        # Consider program strength rating
-        is_competitive = program.strength_rating and program.strength_rating >= 8.5
+        # Get acceptance rate (program > university > 50% default)
+        acceptance_rate = (
+            program.acceptance_rate or 
+            university.acceptance_rate or 
+            0.5  # Default: 50% (neutral assumption)
+        )
         
-        # Determine match type based on BAC score difference
-        if bac_diff >= 1.0 and not is_competitive:
-            return "safety"
-        elif bac_diff >= 0.3 and not is_competitive:
-            return "target"
-        elif bac_diff >= -0.5:
-            return "target"
-        else:
-            return "reach"
+        # Classification based on acceptance rate tiers
+        if acceptance_rate < 0.15:  # Elite schools (<15% acceptance)
+            # Very selective - harder to be a safety
+            if gpa_diff >= 0.2:
+                return "target"  # Even with great grades, it's competitive
+            else:
+                return "reach"
+        
+        elif acceptance_rate < 0.30:  # Selective schools (15-30% acceptance)
+            # Normal classification
+            if gpa_diff >= 0.12:
+                return "safety"
+            elif gpa_diff >= -0.04:
+                return "target"
+            else:
+                return "reach"
+        
+        else:  # Moderate to high acceptance (30%+ acceptance)
+            # More forgiving classification
+            if gpa_diff >= 0.12:
+                return "safety"
+            elif gpa_diff >= -0.08:
+                return "target"
+            else:
+                return "reach"
     
     def find_program_matches(
         self, 
@@ -679,8 +691,15 @@ class RefinedMatchingEngine:
         
         # Map language preference
         language_filter = None
-        if "english" in str(language_pref).lower() and "either" not in str(language_pref).lower():
-            language_filter = "English"
+        lang_pref_str = str(language_pref).lower()
+        if "english_only" in lang_pref_str:
+            language_filter = "english_only"
+        elif "romanian_only" in lang_pref_str:
+            language_filter = "romanian_only"
+        elif "multilingual" in lang_pref_str:
+            language_filter = "multilingual"
+        elif "either" in lang_pref_str:
+            language_filter = "either"
         
         # Note: Specialization is used for SCORING only, not filtering
         # This allows programs like "Information Engineering" to be considered
@@ -702,10 +721,10 @@ class RefinedMatchingEngine:
                 profile, extended_profile, program, university
             )
             
-            # Convert tuition to USD - use program-specific tuition
-            tuition_usd = program.tuition_annual_usd or (program.tuition_annual_eur or (university.tuition_eu or 2000)) * 1.1
-            if isinstance(tuition_usd, float):
-                tuition_usd = int(tuition_usd)
+            # Get tuition in EUR - use program-specific tuition
+            tuition_eur = program.tuition_annual_eur or university.tuition_eu or 2000
+            if isinstance(tuition_eur, float):
+                tuition_eur = int(tuition_eur)
             
             match = ProgramMatch(
                 university_name=university.name,
@@ -717,7 +736,7 @@ class RefinedMatchingEngine:
                 degree_level=program.degree_level,
                 language=program.language,
                 duration_years=program.duration_years,
-                tuition_annual=tuition_usd,
+                tuition_annual=tuition_eur,
                 match_score=score,
                 reasoning=reasoning,
                 match_type=match_type,

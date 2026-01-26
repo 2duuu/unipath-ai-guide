@@ -1,5 +1,6 @@
 # API Dependencies for UniHub Backend
 fastapi==0.104.1
 uvicorn[standard]==0.24.0
-pydantic==2.5.0
+# Align with environment's pydantic to avoid rust build on Python 3.13
+pydantic==2.12.5
 python-multipart==0.0.6

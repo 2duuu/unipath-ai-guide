@@ -35,18 +35,9 @@ class UniversityDB(Base):
     # Admission statistics
     acceptance_rate = Column(Float)
     avg_gpa = Column(Float)
-    avg_bac_score = Column(Float)  # Romanian Baccalaureate score
     
-    # Test scores (for international programs)
-    sat_min = Column(Integer)
-    sat_max = Column(Integer)
-    act_min = Column(Integer)
-    act_max = Column(Integer)
-    
-    # Financial
-    tuition_annual_ron = Column(Integer)  # Romanian Lei
-    tuition_annual_eur = Column(Integer)  # Euros
-    tuition_annual_usd = Column(Integer)  # USD
+    # Financial (all in EUR)
+    tuition_annual_eur = Column(Integer)  # Annual tuition in Euros
     tuition_eu = Column(Integer)  # For EU students
     tuition_non_eu = Column(Integer)  # For non-EU students
     
@@ -97,18 +88,17 @@ class ProgramDB(Base):
     strength_rating = Column(Float)  # 1-10 scale
     accreditation = Column(JSON)  # List of accreditations
     
-    # Program-specific admission criteria
-    avg_bac_score = Column(Float, nullable=True)  # Average BAC score for this program
-    min_bac_score = Column(Float, nullable=True)  # Minimum BAC score for admission
+    # Program-specific admission criteria (GPA on 0-4 scale)
+    avg_gpa = Column(Float, nullable=True)  # Average GPA for admitted students
+    acceptance_rate = Column(Float, nullable=True)  # Program acceptance rate (0.0-1.0, e.g., 0.15 = 15%)
     
-    # Program-specific tuition
-    tuition_annual_ron = Column(Integer, nullable=True)  # Romanian Lei
+    # Program-specific tuition (in EUR)
     tuition_annual_eur = Column(Integer, nullable=True)  # Euros
-    tuition_annual_usd = Column(Integer, nullable=True)  # USD
 
      # Teaching and international opportunities (for extended profile matching)
     teaching_format = Column(JSON, nullable=True)  # Array of teaching formats: ["traditional_lectures", "project_based"]
-    international_opportunities = Column(JSON, nullable=True)  # Object with opportunity indicators
+    international_opportunities = Column(String, nullable=True)  # "high", "medium", or "low"
+    theory_practice_balance = Column(String, nullable=True)  # "pure_theory", "mostly_theory", "balanced", "applied_science", "industry_applications"
     
     # Requirements
     specific_requirements = Column(JSON)
@@ -141,11 +131,6 @@ class AdmissionCriteriaDB(Base):
     
     id = Column(Integer, primary_key=True, index=True)
     university_id = Column(Integer, ForeignKey("universities.id"), nullable=False)
-    
-    # Grade requirements
-    min_gpa = Column(Float)
-    min_bac_score = Column(Float)
-    bac_subjects_required = Column(JSON)  # List of required subjects
     
     # Test requirements
     requires_sat = Column(Boolean, default=False)
@@ -200,13 +185,8 @@ class StudentProfileDB(Base):
     email = Column(String, index=True)
     
     # Academic performance
-    gpa = Column(Float)  # 0-4.0 scale (or converted)
-    bac_score = Column(Float)  # Romanian Baccalaureate score 1-10
+    gpa = Column(Float)  # 0-4.0 scale
     academic_level = Column(String)  # excellent, good, average
-    
-    # Test scores (optional for Romanian students)
-    sat_score = Column(Integer)
-    act_score = Column(Integer)
     
     # Preferences
     fields_of_interest = Column(JSON)  # List of fields

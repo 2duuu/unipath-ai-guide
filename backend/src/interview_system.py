@@ -195,12 +195,22 @@ Start by introducing yourself and asking their name."""
                 # Map response to enum values
                 if field == "academic_level":
                     setattr(self.profile, field, AcademicLevel(response_lower))
+                    # Also set GPA estimate for extended quiz compatibility
+                    gpa_estimates = {
+                        "excellent": 3.85,
+                        "good": 3.45,
+                        "average": 2.95,
+                        "below_average": 2.3
+                    }
+                    self.profile.gpa = gpa_estimates.get(response_lower, 3.0)
                 elif field == "location_preference":
                     setattr(self.profile, field, LocationPreference(response_lower))
                 elif field == "budget_level":
                     setattr(self.profile, field, BudgetLevel(response_lower))
                 elif field == "language_preference":
                     setattr(self.profile, field, LanguagePreference(response_lower))
+                    # Also store in preferences dictionary for refined matching engine
+                    self.profile.preferences['language_preference'] = response_lower
                 elif field == "career_focus":
                     setattr(self.profile, field, CareerFocus(response_lower))
                 elif field == "learning_style":
