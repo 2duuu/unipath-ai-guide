@@ -1,4 +1,4 @@
-# Complete Database Fields Extraction
+﻿# Complete Database Fields Extraction
 
 ## UniversityDB Fields (31 total)
 

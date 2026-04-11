@@ -4,6 +4,15 @@
 
 **URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
 
+## Documentation
+
+Project documentation is grouped under `docs/`:
+
+- `docs/database/`
+- `docs/integration/`
+- `docs/packages/`
+- `docs/README.md` (index)
+
 ## How can I edit this code?
 
 There are several ways of editing your application.
