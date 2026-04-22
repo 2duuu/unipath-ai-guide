@@ -31,6 +31,30 @@ export interface AuthResponse {
   user: User;
 }
 
+type ApiValidationItem = {
+  msg?: string;
+};
+
+const getApiErrorMessage = (payload: any, fallback: string): string => {
+  if (!payload) return fallback;
+
+  if (typeof payload === 'string') return payload;
+
+  const detail = payload.detail;
+  if (typeof detail === 'string') return detail;
+
+  if (Array.isArray(detail)) {
+    const messages = detail
+      .map((item: ApiValidationItem) => item?.msg)
+      .filter((msg): msg is string => Boolean(msg));
+    if (messages.length > 0) return messages.join('. ');
+  }
+
+  if (typeof payload.message === 'string') return payload.message;
+
+  return fallback;
+};
+
 class AuthService {
   private accessToken: string | null = null;
   private refreshToken: string | null = null;
@@ -51,8 +75,13 @@ class AuthService {
     });
 
     if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.detail || 'Registration failed');
+      let errorPayload: any = null;
+      try {
+        errorPayload = await response.json();
+      } catch {
+        // Ignore JSON parse issues and use fallback message.
+      }
+      throw new Error(getApiErrorMessage(errorPayload, 'Registration failed'));
     }
 
     const authData: AuthResponse = await response.json();
@@ -70,8 +99,13 @@ class AuthService {
     });
 
     if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.detail || 'Login failed');
+      let errorPayload: any = null;
+      try {
+        errorPayload = await response.json();
+      } catch {
+        // Ignore JSON parse issues and use fallback message.
+      }
+      throw new Error(getApiErrorMessage(errorPayload, 'Login failed'));
     }
 
     const authData: AuthResponse = await response.json();

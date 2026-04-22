@@ -786,7 +786,7 @@ async def get_universities(
                     "country": uni.country,
                     "description": uni.description_en or uni.description or "",
                     "tuition_annual_eur": uni.tuition_annual_eur,
-                    "tuition_annual_ron": uni.tuition_annual_ron,
+                    "tuition_annual_ron": getattr(uni, "tuition_annual_ron", None),
                     "acceptance_rate": uni.acceptance_rate,
                     "student_count": uni.student_count,
                     "type": uni.type,
