@@ -70,6 +70,8 @@ UniHub is split into two applications plus shared documentation. Each folder has
 | Task | Command |
 | --- | --- |
 | Frontend dev server | `cd frontend && npm install && npm run dev` |
-| Frontend checks | `cd frontend && npm run lint && npm test && npm run build` |
+| Frontend checks | `cd frontend && npm run lint && npm run typecheck && npm test && npm run build` |
 | Backend server | `cd backend && pip install -r requirements.txt && uvicorn app.main:app --port 8084 --reload` |
 | Backend tests | `cd backend && pip install -r requirements-dev.txt && pytest` |
+
+CI (`.github/workflows/ci.yml`) runs exactly these checks on every pull request and on pushes to `main`. All of them must pass.

@@ -170,10 +170,11 @@ Run the frontend checks from `frontend/`:
 npm test
 ```
 
-Run the frontend linter:
+Run the frontend linter and type check:
 
 ```bash
 npm run lint
+npm run typecheck
 ```
 
 Run the production frontend build:
@@ -189,6 +190,9 @@ cd backend
 python -m pip install -r requirements-dev.txt
 python -m pytest
 ```
+
+GitHub Actions (`.github/workflows/ci.yml`) runs all of these checks on every
+pull request and on pushes to `main`.
 
 For a quick manual API check:
 
