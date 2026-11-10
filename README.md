@@ -52,9 +52,22 @@ cd frontend
 npm install
 ```
 
-### 2. Set up the backend environment
+### 2. Set up and start the backend
 
-From the repository root on Windows PowerShell:
+**Quickest way.** One command creates `backend/venv`, installs the dependencies and starts the API on port 8084. It works from any directory.
+
+```powershell
+# Windows PowerShell
+.\backend\start_api.ps1
+# if scripts are blocked: powershell -ExecutionPolicy Bypass -File backend\start_api.ps1
+```
+
+```bash
+# macOS / Linux / Git Bash
+./backend/start_api.sh
+```
+
+**Manual setup** (if you prefer your own virtual environment). From the repository root on Windows PowerShell:
 
 ```powershell
 py -m venv .venv
@@ -70,9 +83,9 @@ source .venv/bin/activate
 python -m pip install -r backend/requirements.txt
 ```
 
-### 3. Start the backend
+### 3. Start the backend (manual setup)
 
-Run this from the `backend/` directory:
+With the virtual environment activated, run this from the `backend/` directory:
 
 ```bash
 cd backend
@@ -106,9 +119,6 @@ The Vite development server proxies `/api` requests to
 ```dotenv
 VITE_API_BASE_URL=http://localhost:8084
 ```
-
-The shell helper at `backend/start_api.sh` is intended for Unix-like
-environments. On Windows, use the Uvicorn command above.
 
 ## API overview
 

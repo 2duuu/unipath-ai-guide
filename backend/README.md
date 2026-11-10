@@ -15,7 +15,11 @@ Once running:
 - API: <http://localhost:8084>
 - Interactive docs: <http://localhost:8084/docs>
 
-`./start_api.sh` does the same steps in one command.
+Or do all of that in one command, from any directory:
+- macOS/Linux/Git Bash: `./backend/start_api.sh`
+- Windows PowerShell: `.\backend\start_api.ps1`
+
+Both create `backend/venv` if needed, install the requirements and start the API on port 8084.
 
 ## Test
 
