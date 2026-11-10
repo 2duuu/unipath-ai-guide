@@ -53,6 +53,14 @@ The LLM **explains** results the backend has already computed. It never changes 
 
 ### PR 2: LLM foundation plus one feature ("Explain my results")
 
+**Work test-first** (CLAUDE.md, "Test-first workflow"):
+1. Agree the schemas and the endpoint contract below.
+2. Write all the tests listed under **Tests**, run them, and confirm they fail because the behaviour is missing.
+3. Commit them on their own.
+4. Only then implement the modules, until they pass.
+
+Don't edit a test to make it pass without stating why in the handoff.
+
 **Backend: create `backend/app/llm/`**
 - `provider.py`:
   - a `LLMProvider` protocol: `generate(request: LLMRequest) -> LLMResult`. It is stateless; conversation history is passed in by the caller, never stored on the provider.
@@ -131,6 +139,7 @@ The LLM **explains** results the backend has already computed. It never changes 
 
 ## Done means
 - Both PRs are open, with every repo check run and the actual results reported (baseline vs after).
+- PR 2's history shows the test commit before the implementation commit, and the handoff includes the failing-then-passing output.
 - With `LLM_ENABLED` unset, the app behaves exactly as before.
 - With `FakeProvider`, the full "explain my results" journey works end to end, including the fallback.
 - A handoff in the CLAUDE.md format, listing what was not done and any open decisions (for example, untracking `unihub.db` and filling `admission_criteria` with sourced data).
