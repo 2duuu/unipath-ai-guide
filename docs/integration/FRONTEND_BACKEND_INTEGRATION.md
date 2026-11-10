@@ -23,7 +23,7 @@ src/
 └── ...
 
 UniHub/
-├── api.py                 # FastAPI backend server
+├── app/main.py                 # FastAPI backend server
 ├── src/                   # Backend source code
 │   ├── interview_system.py
 │   ├── extended_interview_system.py
@@ -40,19 +40,19 @@ First, install Python dependencies:
 
 ```bash
 cd UniHub
-pip install -r api_requirements.txt
+pip install -r requirements.txt
 ```
 
 Initialize the database (done automatically on first start):
 
 ```bash
-python api.py
+uvicorn app.main:app --port 8084
 ```
 
 Or use uvicorn:
 
 ```bash
-uvicorn api:app --reload --host 0.0.0.0 --port 8000
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
 The backend API will be available at:
@@ -70,8 +70,8 @@ npm install
 
 The following has already been configured:
 - ✅ Axios for HTTP requests
-- ✅ API service layer (`src/services/api.ts`)
-- ✅ TypeScript types (`src/types/quiz.ts`)
+- ✅ API service layer (`frontend/src/services/api.ts`)
+- ✅ TypeScript types (`frontend/src/types/quiz.ts`)
 - ✅ Environment variables (`.env`)
 - ✅ Vite proxy configuration
 
@@ -120,7 +120,7 @@ curl -X POST http://localhost:8000/api/submit/initial \
 
 ### API Service Layer
 
-The `src/services/api.ts` file provides typed functions for all API endpoints:
+The `frontend/src/services/api.ts` file provides typed functions for all API endpoints:
 
 ```typescript
 import { getInitialQuestions, submitInitialQuiz } from '@/services/api';
@@ -149,7 +149,7 @@ The backend is configured to accept requests from:
 - `http://localhost:5173` (Vite default)
 - `http://localhost:8080` (Current Vite config)
 
-To add more origins, update `api.py`:
+To add more origins, update `app/main.py`:
 
 ```python
 app.add_middleware(
@@ -212,7 +212,7 @@ app.add_middleware(
 **Terminal 1 - Backend:**
 ```bash
 cd UniHub
-python api.py
+uvicorn app.main:app --port 8084
 ```
 
 **Terminal 2 - Frontend:**
@@ -234,7 +234,7 @@ npm run dev
 
 ### Backend not responding
 - Check if Python server is running: `curl http://localhost:8000/`
-- Verify dependencies: `pip install -r api_requirements.txt`
+- Verify dependencies: `pip install -r requirements.txt`
 - Check for port conflicts
 
 ### Frontend can't connect to backend
@@ -249,7 +249,7 @@ npm run dev
 ## Production Deployment
 
 ### Backend
-1. Update CORS origins in `api.py`
+1. Update CORS origins in `app/main.py`
 2. Use production WSGI server (Gunicorn)
 3. Set up proper database (PostgreSQL)
 4. Configure environment variables

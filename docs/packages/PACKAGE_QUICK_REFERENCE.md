@@ -39,7 +39,7 @@ import { PackageInfoCard } from '@/components/PackageInfoCard';
 ## Backend Functions
 
 ```python
-from src.packages import can_download_pdf, PackageTier, PackageFeature, has_feature_access
+from app.core.packages import can_download_pdf, PackageTier, PackageFeature, has_feature_access
 
 # Check PDF access
 tier = PackageTier(user.package_tier)
@@ -92,7 +92,7 @@ python backend/test_package_system.py
 
 ### Upgrade a user manually (for testing)
 ```python
-from src.database import StudentProfileDB, get_db
+from app.db.database import StudentProfileDB, get_db
 from datetime import datetime
 
 db = next(get_db())
@@ -103,14 +103,14 @@ db.commit()
 ```
 
 ### Add a new feature
-1. Add to `PackageFeature` enum in `backend/src/packages.py`
+1. Add to `PackageFeature` enum in `backend/app/core/packages.py`
 2. Add to appropriate `PACKAGE_FEATURES` sets
-3. Add to `PackageFeature` enum in `src/lib/packages.ts`
+3. Add to `PackageFeature` enum in `frontend/src/lib/packages.ts`
 4. Create access check function if needed
 
 ### Gate a new endpoint
 ```python
-from src.packages import has_feature_access, PackageFeature, PackageTier
+from app.core.packages import has_feature_access, PackageFeature, PackageTier
 
 @app.get("/api/some-premium-endpoint")
 async def premium(user_id: int = Depends(get_current_user_id)):
@@ -133,7 +133,7 @@ Get-Process | Where-Object {$_.ProcessName -like '*python*'} | Stop-Process -For
 
 # Start backend
 cd backend
-& ..\.venv\Scripts\python.exe api.py
+& uvicorn app.main:app --port 8084
 ```
 
 ---

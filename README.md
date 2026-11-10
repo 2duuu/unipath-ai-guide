@@ -11,8 +11,6 @@ The project is a full-stack application:
 - **Backend:** FastAPI, Pydantic, SQLAlchemy, and SQLite
 - **Matching:** initial university matching followed by an extended
   program-specific assessment
-- **Deployment:** Docker Compose with Nginx serving the frontend and proxying
-  `/api` requests to the backend
 
 ## User journey
 
@@ -45,16 +43,12 @@ For local development, install:
 - npm
 - Python 3.11 or newer
 
-Docker Desktop can be used instead of installing the frontend and backend
-dependencies locally.
-
 ## Local development
 
 ### 1. Install frontend dependencies
 
-From the repository root:
-
 ```bash
+cd frontend
 npm install
 ```
 
@@ -66,7 +60,6 @@ From the repository root on Windows PowerShell:
 py -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install -r backend\requirements.txt
-python -m pip install -r backend\api_requirements.txt
 ```
 
 On macOS or Linux:
@@ -75,15 +68,15 @@ On macOS or Linux:
 python3 -m venv .venv
 source .venv/bin/activate
 python -m pip install -r backend/requirements.txt
-python -m pip install -r backend/api_requirements.txt
 ```
 
 ### 3. Start the backend
 
-Run this from the repository root:
+Run this from the `backend/` directory:
 
 ```bash
-python -m uvicorn api:app --app-dir backend --host 0.0.0.0 --port 8084 --reload
+cd backend
+python -m uvicorn app.main:app --host 0.0.0.0 --port 8084 --reload
 ```
 
 The backend is available at:
@@ -97,17 +90,18 @@ SQLite database is stored in `backend/data/unihub.db`.
 
 ### 4. Start the frontend
 
-In a second terminal, from the repository root:
+In a second terminal:
 
 ```bash
+cd frontend
 npm run dev
 ```
 
 Open <http://localhost:3000>.
 
 The Vite development server proxies `/api` requests to
-`http://localhost:8084`. If the API is hosted elsewhere, create a `.env` file
-in the repository root:
+`http://localhost:8084`. If the API is hosted elsewhere, create `frontend/.env`
+(see `frontend/.env.example`):
 
 ```dotenv
 VITE_API_BASE_URL=http://localhost:8084
@@ -115,26 +109,6 @@ VITE_API_BASE_URL=http://localhost:8084
 
 The shell helper at `backend/start_api.sh` is intended for Unix-like
 environments. On Windows, use the Uvicorn command above.
-
-## Docker Compose
-
-Docker Compose starts both services with the production-style Nginx frontend
-and the FastAPI backend:
-
-```bash
-docker compose up --build
-```
-
-Then open <http://localhost:3000>. The frontend container serves the built
-application and proxies API requests to the backend container. Stop the
-services with:
-
-```bash
-docker compose down
-```
-
-The SQLite data directory is mounted from `backend/data`, so database data is
-preserved when containers are recreated.
 
 ## API overview
 
@@ -160,36 +134,27 @@ while the backend is running.
 
 ```text
 .
-├── src/                    # React application
-│   ├── components/         # Shared UI and layout components
-│   ├── contexts/           # React context providers
-│   ├── pages/              # Application routes
-│   ├── services/           # API and domain service clients
-│   └── types/              # Shared frontend types
+├── frontend/          # React + TypeScript + Vite app (pages, components, services, lib)
 ├── backend/
-│   ├── api.py              # FastAPI application and REST endpoints
-│   ├── src/                # Matching, interview, auth, and database logic
-│   ├── data/               # SQLite databases
-│   └── tests/              # Backend test suites
-├── docs/                   # Database, integration, and package documentation
-├── public/                 # Static frontend assets
-├── Dockerfile              # Multi-stage frontend image
-├── docker-compose.yml      # Frontend and backend services
-└── vite.config.ts          # Vite development server and API proxy
+│   ├── app/           # FastAPI app: api/routes, core, db, domain, quiz, matching
+│   ├── data/          # SQLite database
+│   ├── scripts/       # CLI runner and manual scenarios
+│   └── tests/         # initial_quiz/ and extended_quiz/ suites
+├── docs/              # All documentation
+└── CLAUDE.md          # Working agreement for AI agents
 ```
 
-More focused documentation is available in:
+See [`docs/project-structure.md`](docs/project-structure.md) for the detailed
+layout and where new code should go. Other documentation:
 
-- [`docs/README.md`](docs/README.md) — documentation index
-- [`docs/integration/FRONTEND_BACKEND_INTEGRATION.md`](docs/integration/FRONTEND_BACKEND_INTEGRATION.md)
-  — frontend/backend integration details
-- [`backend/docs/README.md`](backend/docs/README.md) — backend documentation
-- [`backend/frontend/README.md`](backend/frontend/README.md) — quiz integration
-  examples
+- [`docs/README.md`](docs/README.md): documentation index
+- [`backend/README.md`](backend/README.md): backend setup, layout and configuration
+- [`docs/integration/FRONTEND_BACKEND_INTEGRATION.md`](docs/integration/FRONTEND_BACKEND_INTEGRATION.md):
+  frontend/backend integration details
 
 ## Testing and quality checks
 
-Run the frontend test suite:
+Run the frontend checks from `frontend/`:
 
 ```bash
 npm test
@@ -207,12 +172,12 @@ Run the production frontend build:
 npm run build
 ```
 
-Run backend tests from the repository root after activating the Python
-environment:
+Run the backend tests from `backend/` after activating the Python environment:
 
 ```bash
-python -m pytest backend/tests -v
-python -m pytest backend/tests_initial_quiz -v
+cd backend
+python -m pip install -r requirements-dev.txt
+python -m pytest
 ```
 
 For a quick manual API check:
@@ -226,20 +191,18 @@ curl http://localhost:8084/api/questions/initial
 
 For production deployments:
 
-- Set a strong, private JWT secret instead of the development value used by
-  Docker Compose.
+- Set a strong, private `JWT_SECRET_KEY` instead of the development default.
 - Configure the database location with `DATABASE_URL` when using a managed
   database.
 - Set `VITE_API_BASE_URL` to the public API URL when the frontend and backend
   are deployed separately.
-- Update the backend CORS allowlist in `backend/api.py` to include only trusted
+- Update the backend CORS allowlist in `backend/app/main.py` to include only trusted
   frontend origins.
 - Do not commit `.env` files, credentials, API keys, or production database
   files.
 
 ## Deployment notes
 
-The included Docker setup is suitable for a single-host deployment behind a
-reverse proxy. For production, use HTTPS, persistent database storage, a
-managed secret configuration, and a production-grade database if multiple
-instances or high traffic are expected.
+There is no deployment configuration in the repository yet. For production, use
+HTTPS, persistent database storage, managed secrets, and a production-grade
+database if multiple instances or high traffic are expected.

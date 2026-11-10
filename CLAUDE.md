@@ -62,6 +62,7 @@ Goal and user-visible outcome:
 Allowed files / shared files requiring coordination:
 Inputs, dependencies and agreed contracts:
 Acceptance criteria and required checks:
+Tests to write first (behaviors, including negative cases):
 Out of scope:
 Handoff recipient:
 ```
@@ -136,6 +137,19 @@ Required behavioral coverage:
 
 Keep unit tests around meaningful scoring and validation logic, integration tests around contracts and data flows, and end-to-end tests around student journeys. QA owns independent acceptance assertions, including negative cases. Fix failures before broadening scope.
 
+### Test-first workflow (mandatory for every agent)
+
+Write the tests before the implementation. The tests define what "correct" means, so an agent can't talk itself into believing broken or invented behavior works.
+
+1. **Specify.** Turn the task's acceptance criteria into concrete test cases before writing any production code: the expected behavior, edge cases, negative cases (invalid input, unauthorized access, missing data, provider failure) and, for LLM work, the groundedness and prompt-injection cases.
+2. **Write the tests and see them fail.** Run them against the current code and confirm they fail *for the expected reason* (missing behavior), not because of a syntax error, a wrong import or a broken fixture. A test that passes before the implementation exists tests nothing; fix it.
+3. **Commit the tests first.** Commit the failing tests on their own (e.g. `test: specify explain-results fallback`) before the implementation commit, so reviewers can see the specification wasn't adjusted to fit the code.
+4. **Implement the minimum to pass.** Write only enough production code to make the tests pass, then run the full relevant suite to catch regressions.
+5. **Never change a test to make it pass.** If a test turns out to be wrong, say so explicitly in the commit message and handoff, and get agreement from the task owner or lead (QA for acceptance tests). Never weaken assertions, delete cases, add skips or mock away the behavior under test just to get green.
+6. **Ground tests in reality.** Assert against agreed contracts, real schemas and synthetic fixtures. Never use invented university facts or guessed API shapes. If a contract is missing, ask the lead to define it before writing tests against it.
+
+Exceptions: pure refactors (behavior unchanged) instead require existing tests, or a recorded before/after characterization check, to pass unchanged. Documentation-only and configuration-only changes need no new tests, but must not break existing checks. A bug fix starts with a test that reproduces the bug.
+
 ## Deployment and approval boundary
 
 - Host the requested MVP privately with Sites. Preserve owner-only access and verify the returned access state and deployment status. Never make it public, expand its audience, invite viewers or disable authentication without explicit user approval.
@@ -146,13 +160,14 @@ Keep unit tests around meaningful scoring and validation logic, integration test
 
 ## Definition of done and handoff
 
-A task is done when its acceptance criteria pass, its interfaces match the agreed contracts, relevant checks pass, documentation reflects changed behavior and the lead has enough evidence to integrate it.
+A task is done when its acceptance criteria pass, its tests were written and committed before the implementation (see the test-first workflow), its interfaces match the agreed contracts, relevant checks pass, documentation reflects changed behavior and the lead has enough evidence to integrate it.
 
 ```text
 Task / status:
 Summary and user-visible behavior:
 Branch / commit / changed files:
 Contract or data changes:
+Tests written first (commit) and failing-then-passing evidence:
 Checks run and actual results:
 Known limitations / blocked checks:
 Dependencies and next owner action:

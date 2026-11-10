@@ -8,7 +8,7 @@ I've successfully implemented a complete package-based access control system for
 
 ### Backend
 
-1. **backend/src/packages.py** ✨ NEW
+1. **backend/app/core/packages.py** ✨ NEW
    - Package tier definitions (FREE, DECISION_CLARITY, APPLICATION_PREP, GUIDED_SUPPORT)
    - 19 feature enums (BASIC_QUIZ, PDF_SUMMARY, etc.)
    - Feature-to-package mapping
@@ -19,7 +19,7 @@ I've successfully implemented a complete package-based access control system for
    - `generate_recommendation_pdf(user, recommendations)` function
    - Creates formatted PDF with university/program recommendations
 
-3. **backend/api.py** 📝 MODIFIED
+3. **backend/app/main.py** 📝 MODIFIED
    - Added 3 new API endpoints:
      - `GET /api/download/recommendations-pdf` - Download PDF (requires premium package)
      - `POST /api/user/upgrade-package` - Upgrade user's package
@@ -39,21 +39,21 @@ I've successfully implemented a complete package-based access control system for
 
 ### Frontend
 
-1. **src/lib/packages.ts** ✨ NEW
+1. **frontend/src/lib/packages.ts** ✨ NEW
    - Frontend package types and enums (mirrors backend)
    - Package display information (names, prices, descriptions)
    - Helper functions: `hasFeature()`, `canDownloadPDF()`, `getPackageDisplayName()`
 
-2. **src/services/packages.ts** ✨ NEW
+2. **frontend/src/services/packages.ts** ✨ NEW
    - API service layer for package operations
    - Functions: `getPackageInfo()`, `upgradePackage()`, `downloadRecommendationsPDF()`, `triggerPDFDownload()`
 
-3. **src/components/PackageInfoCard.tsx** ✨ NEW
+3. **frontend/src/components/packages/PackageInfoCard.tsx** ✨ NEW
    - React component to display user's current package
    - Shows package name, price, purchase date, and feature list
    - Auto-loads package info on mount
 
-4. **src/components/DownloadPDFButton.tsx** ✨ NEW
+4. **frontend/src/components/packages/DownloadPDFButton.tsx** ✨ NEW
    - React button component for PDF download
    - Includes package access check
    - Shows upgrade dialog if user lacks permission
@@ -150,7 +150,7 @@ function ProfilePage() {
 ### To check feature access in backend:
 
 ```python
-from src.packages import can_download_pdf, PackageTier
+from app.core.packages import can_download_pdf, PackageTier
 
 @app.get("/some-endpoint")
 async def endpoint(user_id: int = Depends(get_current_user_id)):
@@ -206,7 +206,7 @@ Get-Process | Where-Object {$_.ProcessName -like '*python*'} | Stop-Process -For
 
 # Start backend
 cd backend
-& ..\.venv\Scripts\python.exe api.py
+& uvicorn app.main:app --port 8084
 ```
 
 Backend will start on **port 8084** with package system enabled.
