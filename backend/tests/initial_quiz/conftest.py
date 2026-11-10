@@ -76,9 +76,9 @@ def seeded_test_db(test_db):
             tuition_non_eu=5000,
             tuition_annual_eur=2700,
             english_programs=True,
+            languages_offered=["Romanian", "English"],  # matches the real catalog shape
             size="large",
             description_en="Leading engineering and research university",
-            avg_bac_score=8.5,  # Excellent
             avg_gpa=3.7
         )
         db.add(uni1)
@@ -96,9 +96,9 @@ def seeded_test_db(test_db):
             tuition_non_eu=8000,
             tuition_annual_eur=5400,
             english_programs=True,
+            languages_offered=["Romanian", "English"],  # matches the real catalog shape
             size="medium",
             description_en="Business and management focused university with industry connections",
-            avg_bac_score=7.0,  # Average
             avg_gpa=3.0
         )
         db.add(uni2)
@@ -116,9 +116,9 @@ def seeded_test_db(test_db):
             tuition_non_eu=15000,
             tuition_annual_eur=11000,
             english_programs=True,
+            languages_offered=["Romanian", "English"],  # matches the real catalog shape
             size="large",
             description_en="Research-intensive university with strong PhD programs",
-            avg_bac_score=9.0,  # Excellent
             avg_gpa=3.9
         )
         db.add(uni3)
@@ -136,9 +136,9 @@ def seeded_test_db(test_db):
             tuition_non_eu=25000,
             tuition_annual_eur=25000,
             english_programs=True,
+            languages_offered=["Romanian", "English"],  # matches the real catalog shape
             size="large",
             description_en="Comprehensive university with entrepreneurship programs",
-            avg_bac_score=8.8,  # Excellent
             avg_gpa=3.8
         )
         db.add(uni4)

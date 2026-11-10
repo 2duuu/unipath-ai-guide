@@ -80,8 +80,7 @@ def seeded_test_db(test_db):
             tuition_non_eu=3000,
             english_programs=True,
             size="large",
-            description_en="Test university for engineering",
-            avg_bac_score=8.0
+            description_en="Test university for engineering"
         )
         db.add(uni1)
         db.flush()
@@ -97,8 +96,7 @@ def seeded_test_db(test_db):
             tuition_non_eu=3500,
             english_programs=True,
             size="medium",
-            description_en="Test university for business",
-            avg_bac_score=7.5
+            description_en="Test university for business"
         )
         db.add(uni2)
         db.flush()
