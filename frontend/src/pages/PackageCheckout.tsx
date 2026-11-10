@@ -34,7 +34,7 @@ const PACKAGE_FEATURES = {
     'Comparări avansate cu AI',
     'Recomandări clasate',
     'Analiză tradeoff-uri',
-    'Probabilitate de admitere',
+    'Requirements & Fit Check',
     'Descărcare rezumat PDF',
     'Chat AI nelimitat',
   ],

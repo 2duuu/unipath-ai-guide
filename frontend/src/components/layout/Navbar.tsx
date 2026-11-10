@@ -29,7 +29,7 @@ const FEATURE_LABELS: Record<PackageFeature, string> = {
   [PackageFeature.ADVANCED_AI_COMPARISONS]: 'Comparații AI Avansate',
   [PackageFeature.RANKED_RECOMMENDATIONS]: 'Recomandări Clasificate',
   [PackageFeature.TRADEOFF_ANALYSIS]: 'Analiză Compromisuri',
-  [PackageFeature.ADMISSION_PROBABILITY]: 'Probabilitate Admitere',
+  [PackageFeature.REQUIREMENTS_FIT_CHECK]: 'Requirements & Fit Check',
   [PackageFeature.PDF_SUMMARY]: 'Descărcare Raport PDF',
   [PackageFeature.UNLIMITED_AI_CHAT]: 'Chat AI Nelimitat',
   [PackageFeature.APPLICATION_STRATEGY]: 'Ghid Strategie Aplicare',

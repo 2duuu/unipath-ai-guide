@@ -18,7 +18,7 @@ const PACKAGE_FEATURES = {
     'Advanced AI Comparisons',
     'Ranked Recommendations',
     'Trade-off Analysis',
-    'Admission Probability',
+    'Requirements & Fit Check',
     'PDF Summary Download',
     'Unlimited AI Chat',
   ],

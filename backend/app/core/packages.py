@@ -25,7 +25,9 @@ class PackageFeature(str, Enum):
     ADVANCED_AI_COMPARISONS = "advanced_ai_comparisons"
     RANKED_RECOMMENDATIONS = "ranked_recommendations"
     TRADEOFF_ANALYSIS = "tradeoff_analysis"
-    ADMISSION_PROBABILITY = "admission_probability"
+    # Compares the student's stated situation with verified, published requirements.
+    # Never an admission probability or prediction.
+    REQUIREMENTS_FIT_CHECK = "requirements_fit_check"
     PDF_SUMMARY = "pdf_summary"  # THIS IS THE KEY FEATURE
     UNLIMITED_AI_CHAT = "unlimited_ai_chat"
     
@@ -59,7 +61,7 @@ PACKAGE_FEATURES: dict[PackageTier, Set[PackageFeature]] = {
         PackageFeature.ADVANCED_AI_COMPARISONS,
         PackageFeature.RANKED_RECOMMENDATIONS,
         PackageFeature.TRADEOFF_ANALYSIS,
-        PackageFeature.ADMISSION_PROBABILITY,
+        PackageFeature.REQUIREMENTS_FIT_CHECK,
         PackageFeature.PDF_SUMMARY,
         PackageFeature.UNLIMITED_AI_CHAT,
     },
@@ -70,7 +72,7 @@ PACKAGE_FEATURES: dict[PackageTier, Set[PackageFeature]] = {
         PackageFeature.ADVANCED_AI_COMPARISONS,
         PackageFeature.RANKED_RECOMMENDATIONS,
         PackageFeature.TRADEOFF_ANALYSIS,
-        PackageFeature.ADMISSION_PROBABILITY,
+        PackageFeature.REQUIREMENTS_FIT_CHECK,
         PackageFeature.PDF_SUMMARY,
         PackageFeature.UNLIMITED_AI_CHAT,
         # Plus package 2 features
@@ -87,7 +89,7 @@ PACKAGE_FEATURES: dict[PackageTier, Set[PackageFeature]] = {
         PackageFeature.ADVANCED_AI_COMPARISONS,
         PackageFeature.RANKED_RECOMMENDATIONS,
         PackageFeature.TRADEOFF_ANALYSIS,
-        PackageFeature.ADMISSION_PROBABILITY,
+        PackageFeature.REQUIREMENTS_FIT_CHECK,
         PackageFeature.PDF_SUMMARY,
         PackageFeature.UNLIMITED_AI_CHAT,
         PackageFeature.APPLICATION_STRATEGY,
@@ -112,8 +114,8 @@ def has_feature_access(package: PackageTier, feature: PackageFeature) -> bool:
 
 
 def get_package_features(package: PackageTier) -> List[PackageFeature]:
-    """Get all features available for a package tier."""
-    return list(PACKAGE_FEATURES.get(package, set()))
+    """Get all features available for a package tier, sorted by value for deterministic output."""
+    return sorted(PACKAGE_FEATURES.get(package, set()), key=lambda f: f.value)
 
 
 def can_download_pdf(package: PackageTier) -> bool:
