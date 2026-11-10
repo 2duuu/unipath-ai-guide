@@ -23,8 +23,8 @@
 └─────────────────────────────────────────────────────────────────────┘
 
   Backend:
-  ├── api.py                          # FastAPI backend (416 lines)
-  ├── api_requirements.txt            # Dependencies
+  ├── app/main.py                          # FastAPI backend (416 lines)
+  ├── requirements.txt            # Dependencies
   ├── test_api.py                     # Test suite (181 lines)
   └── start_api.sh                    # Quick start script
 
@@ -80,7 +80,7 @@
   Search for: #667eea and #764ba2
   Replace with your brand colors
   
-  Add CORS Origin (api.py line 23):
+  Add CORS Origin (app/main.py line 23):
   allow_origins=["https://yourapp.com"]
 
 
@@ -124,16 +124,16 @@
 └─────────────────────────────────────────────────────────────────────┘
 
   CORS Error:
-  → Add your URL to allow_origins in api.py
+  → Add your URL to allow_origins in app/main.py
   
   Port in Use:
   → lsof -ti:8000 | xargs kill -9
   
   Module Not Found:
-  → pip install -r api_requirements.txt
+  → pip install -r requirements.txt
   
   Can't Connect to API:
-  → Make sure API is running: python api.py
+  → Make sure API is running: uvicorn app.main:app --port 8084
 
 
 ┌─────────────────────────────────────────────────────────────────────┐

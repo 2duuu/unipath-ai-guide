@@ -6,17 +6,17 @@
 
 Install API dependencies:
 ```bash
-pip install -r api_requirements.txt
+pip install -r requirements.txt
 ```
 
 Start the FastAPI server:
 ```bash
-python api.py
+uvicorn app.main:app --port 8084
 ```
 
 Or with uvicorn:
 ```bash
-uvicorn api:app --reload --host 0.0.0.0 --port 8000
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
 The API will be available at: `http://localhost:8000`
@@ -26,7 +26,7 @@ The API will be available at: `http://localhost:8000`
 ### 2. Frontend Setup (React/TypeScript)
 
 Copy the files to your React TypeScript project:
-- `frontend/Quiz.tsx` → Your React components folder (e.g., `src/pages/Quiz.tsx`)
+- `frontend/Quiz.tsx` → Your React components folder (e.g., `frontend/src/pages/Quiz.tsx`)
 - `frontend/Quiz.css` → Same folder as Quiz.tsx
 
 Update the API URL if needed (in Quiz.tsx):
@@ -90,7 +90,7 @@ The API allows connections from:
 - `http://localhost:3000` (Create React App default)
 - `http://localhost:5173` (Vite default)
 
-Add more origins in `api.py`:
+Add more origins in `app/main.py`:
 ```python
 allow_origins=["http://localhost:3000", "https://yourapp.com"]
 ```
@@ -102,8 +102,8 @@ Uses SQLite by default (`unihub.db`). Initialized automatically on API startup.
 
 ```
 UniHub/
-├── api.py                    # FastAPI backend
-├── api_requirements.txt      # API dependencies
+├── app/main.py                    # FastAPI backend
+├── requirements.txt      # API dependencies
 ├── src/                      # Python source code
 │   ├── interview_system.py
 │   ├── matching_engine.py
@@ -133,7 +133,7 @@ curl http://localhost:8000/api/stats
 
 ### Backend (API)
 Deploy to:
-- **Heroku**: Use `Procfile` with `web: uvicorn api:app --host=0.0.0.0 --port=${PORT}`
+- **Heroku**: Use `Procfile` with `web: uvicorn app.main:app --host=0.0.0.0 --port=${PORT}`
 - **AWS EC2**: Run with systemd service
 - **Railway/Render**: Auto-detect FastAPI
 
@@ -153,7 +153,7 @@ DATABASE_URL=postgresql://...  # For production database
 ALLOWED_ORIGINS=https://yourapp.com
 ```
 
-Update api.py to use environment variables:
+Update app/main.py to use environment variables:
 ```python
 import os
 from dotenv import load_dotenv
@@ -174,7 +174,7 @@ API_BASE_URL = os.getenv("API_BASE_URL", "http://localhost:8000")
 
 **CORS Error**: Make sure frontend origin is in `allow_origins` list
 **Port in use**: Change port with `--port 8001`
-**Module not found**: Install dependencies with `pip install -r api_requirements.txt`
+**Module not found**: Install dependencies with `pip install -r requirements.txt`
 **Database locked**: Close other connections to unihub.db
 
 ## 📚 Next Steps

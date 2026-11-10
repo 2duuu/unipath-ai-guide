@@ -24,7 +24,7 @@
                       │
                       ▼
         ┌─────────────────────────────┐
-        │    Backend API (api.py)     │
+        │    Backend API (app/main.py)     │
         │  @app.get("/api/download/   │
         │    recommendations-pdf")    │
         └─────────────┬───────────────┘
@@ -142,7 +142,7 @@ Backend (Python)
 │   ├── database.py          💾 SQLAlchemy models
 │   └── ...
 │
-└── api.py                   🌐 FastAPI endpoints
+└── app/main.py                   🌐 FastAPI endpoints
     ├── GET /api/user/package-info
     ├── POST /api/user/upgrade-package
     └── GET /api/download/recommendations-pdf
@@ -290,7 +290,7 @@ python backend/migrate_add_packages.py
 
 # Start backend
 cd backend
-python api.py
+uvicorn app.main:app --port 8084
 
 # Test PDF download (premium user)
 curl -X GET "http://localhost:8084/api/download/recommendations-pdf" \

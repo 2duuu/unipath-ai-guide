@@ -50,7 +50,7 @@ package_expires_at DATETIME
 
 ### Core Modules
 
-#### 1. **backend/src/packages.py**
+#### 1. **backend/app/core/packages.py**
 Defines the package system:
 - `PackageTier` enum (FREE, DECISION_CLARITY, APPLICATION_PREP, GUIDED_SUPPORT)
 - `PackageFeature` enum (19 features)
@@ -132,7 +132,7 @@ Download PDF summary of recommendations.
 
 ### Core Modules
 
-#### 1. **src/lib/packages.ts**
+#### 1. **frontend/src/lib/packages.ts**
 Frontend package types and utilities:
 - `PackageTier` enum (mirrors backend)
 - `PackageFeature` enum (mirrors backend)
@@ -142,7 +142,7 @@ Frontend package types and utilities:
   - `canDownloadPDF(packageInfo)` - Check PDF access
   - `getPackageDisplayName(tier)` - Get display name
 
-#### 2. **src/services/packages.ts**
+#### 2. **frontend/src/services/packages.ts**
 API service for package operations:
 - `getPackageInfo()` - Fetch user's package info
 - `upgradePackage(tier)` - Upgrade to new tier
@@ -151,7 +151,7 @@ API service for package operations:
 
 ### UI Components
 
-#### 1. **src/components/PackageInfoCard.tsx**
+#### 1. **frontend/src/components/packages/PackageInfoCard.tsx**
 Displays user's current package:
 - Package name and price
 - Purchase date
@@ -165,7 +165,7 @@ import { PackageInfoCard } from '@/components/PackageInfoCard';
 <PackageInfoCard />
 ```
 
-#### 2. **src/components/DownloadPDFButton.tsx**
+#### 2. **frontend/src/components/packages/DownloadPDFButton.tsx**
 Button to download PDF with access control:
 - Shows download button
 - Checks package access on click
@@ -224,7 +224,7 @@ python migrate_add_packages.py
 
 ```bash
 cd backend
-python api.py
+uvicorn app.main:app --port 8084
 ```
 
 The backend will now run with package access control enabled.
@@ -288,7 +288,7 @@ function FeatureGate() {
 ### Example 3: Backend Feature Check
 
 ```python
-from src.packages import can_download_pdf, get_user_features
+from app.core.packages import can_download_pdf, get_user_features
 
 # Check specific feature
 @app.get("/api/some-premium-feature")

@@ -41,18 +41,18 @@ Edge case and boundary condition tests:
 
 ### Run all tests:
 ```bash
-cd tests_initial_quiz
+cd tests/initial_quiz
 python run_tests.py
 ```
 
 ### Run specific test file:
 ```bash
-pytest tests_initial_quiz/test_interview_system.py -v
+pytest tests/initial_quiz/test_interview_system.py -v
 ```
 
 ### Run with coverage:
 ```bash
-pytest tests_initial_quiz/ --cov=src --cov-report=html
+pytest tests/initial_quiz/ --cov=src --cov-report=html
 ```
 
 ## Test Coverage

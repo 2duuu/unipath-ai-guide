@@ -78,13 +78,13 @@ Edge cases:
 
 ```bash
 # Run all tests
-pytest tests_initial_quiz/ -v
+pytest tests/initial_quiz/ -v
 
 # Run specific test file
-pytest tests_initial_quiz/test_interview_system.py -v
+pytest tests/initial_quiz/test_interview_system.py -v
 
 # Run with coverage
-pytest tests_initial_quiz/ --cov=src --cov-report=html
+pytest tests/initial_quiz/ --cov=src --cov-report=html
 ```
 
 ## Expected Outcomes

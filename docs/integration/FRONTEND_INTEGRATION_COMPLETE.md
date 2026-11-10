@@ -3,7 +3,7 @@
 ## What Was Created
 
 ### ✅ Backend API (Python FastAPI)
-1. **api.py** (416 lines)
+1. **app/main.py** (416 lines)
    - Complete REST API with 7 endpoints
    - Initial quiz endpoint (GET /api/questions/initial)
    - Extended quiz endpoint (GET /api/questions/extended)
@@ -13,7 +13,7 @@
    - CORS enabled for React/Vite
    - Auto-generated API docs (Swagger/ReDoc)
 
-2. **api_requirements.txt**
+2. **requirements.txt**
    - FastAPI
    - Uvicorn
    - Pydantic
@@ -243,7 +243,7 @@ In `Quiz.tsx`:
 ```
 
 ### Modify Questions
-Edit in `src/interview_system.py` and `src/extended_interview_system.py`
+Edit in `backend/app/quiz/initial.py` and `backend/app/quiz/extended.py`
 
 ## 🚀 Production Checklist
 
@@ -298,16 +298,16 @@ For larger scale:
 ## 🆘 Common Issues & Solutions
 
 **Issue**: CORS error in browser
-**Solution**: Add your frontend URL to `allow_origins` in api.py
+**Solution**: Add your frontend URL to `allow_origins` in app/main.py
 
 **Issue**: API won't start
 **Solution**: Check if port 8000 is in use: `lsof -ti:8000`
 
 **Issue**: "Module not found" error
-**Solution**: Install dependencies: `pip install -r api_requirements.txt`
+**Solution**: Install dependencies: `pip install -r requirements.txt`
 
 **Issue**: Frontend shows "Failed to fetch"
-**Solution**: Make sure API is running: `python api.py`
+**Solution**: Make sure API is running: `uvicorn app.main:app --port 8084`
 
 ## 🎓 Learning Resources
 

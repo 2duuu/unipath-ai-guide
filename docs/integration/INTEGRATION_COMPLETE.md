@@ -2,17 +2,17 @@
 
 ## ✅ What Was Done
 
-### 1. **API Service Layer** (`src/services/api.ts`)
+### 1. **API Service Layer** (`frontend/src/services/api.ts`)
 - Created typed functions for all backend endpoints
 - Error handling with Axios
 - Environment-based API URL configuration
 
-### 2. **TypeScript Types** (`src/types/quiz.ts`)
+### 2. **TypeScript Types** (`frontend/src/types/quiz.ts`)
 - Complete type definitions for API requests/responses
 - Question, Answer, Match interfaces
 - University and Program match types
 
-### 3. **Quiz Component** (`src/pages/Quiz.tsx`)
+### 3. **Quiz Component** (`frontend/src/pages/Quiz.tsx`)
 - Replaced mock data with real API calls
 - Dynamic question rendering (5 types: choice, multiple_choice, text, number, range)
 - Progress tracking and validation
@@ -33,7 +33,7 @@
 ### Backend (Already Running on Port 8000)
 ```bash
 cd UniHub
-python api.py
+uvicorn app.main:app --port 8084
 ```
 - API: http://localhost:8000
 - Swagger Docs: http://localhost:8000/docs
@@ -69,8 +69,8 @@ npm run dev
 - ✅ `package.json` - Added axios
 - ✅ `vite.config.ts` - Added proxy configuration
 - ✅ `.env` - Environment variables
-- ✅ `src/pages/Quiz.tsx` - Complete rewrite with API integration
-- ✅ `src/pages/Quiz.css` - Styling from UniHub frontend
+- ✅ `frontend/src/pages/Quiz.tsx` - Complete rewrite with API integration
+- ✅ `frontend/src/pages/Quiz.css` - Styling from UniHub frontend
 
 ## 📁 New Files Created
 

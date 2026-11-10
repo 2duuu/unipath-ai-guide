@@ -35,7 +35,7 @@ This will:
 You can test just the interview questions in Python:
 
 ```python
-from src.interview_system import InterviewSystem
+from app.quiz.initial import InterviewSystem
 
 # Create interview system
 interview = InterviewSystem()
@@ -200,8 +200,8 @@ You can also create a quick test file:
 
 ```python
 # quick_test.py
-from src.interview_system import InterviewSystem
-from src.matching_engine import MatchingEngine
+from app.quiz.initial import InterviewSystem
+from app.matching.engine import MatchingEngine
 
 # Create and fill profile
 interview = InterviewSystem()
