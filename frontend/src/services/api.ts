@@ -12,6 +12,10 @@ import type {
   FeedbackRequest,
   FeedbackResponse,
   StatsResponse,
+  QuizResultsResponse,
+  QuizAttemptsResponse,
+  SaveQuizAttemptRequest,
+  SaveQuizAttemptResponse,
 } from '@/types/quiz';
 
 // Get API base URL from env or rely on Vite proxy via relative paths
@@ -120,7 +124,7 @@ export const submitFeedback = async (
 /**
  * Get current user's quiz results
  */
-export const getUserQuizResults = async (): Promise<any> => {
+export const getUserQuizResults = async (): Promise<QuizResultsResponse> => {
   try {
     const token = localStorage.getItem('access_token');
     const response = await api.get('/api/quiz/results', {
@@ -137,7 +141,7 @@ export const getUserQuizResults = async (): Promise<any> => {
 /**
  * Get user's saved quiz attempts
  */
-export const getUserQuizAttempts = async (): Promise<any> => {
+export const getUserQuizAttempts = async (): Promise<QuizAttemptsResponse> => {
   try {
     const token = localStorage.getItem('access_token');
     const response = await api.get('/api/quiz/attempts', {
@@ -154,7 +158,7 @@ export const getUserQuizAttempts = async (): Promise<any> => {
 /**
  * Save a quiz attempt to user profile
  */
-export const saveQuizAttempt = async (data: any): Promise<any> => {
+export const saveQuizAttempt = async (data: SaveQuizAttemptRequest): Promise<SaveQuizAttemptResponse> => {
   try {
     const response = await api.post('/api/quiz/save-attempt', data);
     return response.data;

@@ -35,12 +35,13 @@ type ApiValidationItem = {
   msg?: string;
 };
 
-const getApiErrorMessage = (payload: any, fallback: string): string => {
+const getApiErrorMessage = (payload: unknown, fallback: string): string => {
   if (!payload) return fallback;
 
   if (typeof payload === 'string') return payload;
+  if (typeof payload !== 'object') return fallback;
 
-  const detail = payload.detail;
+  const { detail, message } = payload as { detail?: unknown; message?: unknown };
   if (typeof detail === 'string') return detail;
 
   if (Array.isArray(detail)) {
@@ -50,7 +51,7 @@ const getApiErrorMessage = (payload: any, fallback: string): string => {
     if (messages.length > 0) return messages.join('. ');
   }
 
-  if (typeof payload.message === 'string') return payload.message;
+  if (typeof message === 'string') return message;
 
   return fallback;
 };
@@ -75,7 +76,7 @@ class AuthService {
     });
 
     if (!response.ok) {
-      let errorPayload: any = null;
+      let errorPayload: unknown = null;
       try {
         errorPayload = await response.json();
       } catch {
@@ -99,7 +100,7 @@ class AuthService {
     });
 
     if (!response.ok) {
-      let errorPayload: any = null;
+      let errorPayload: unknown = null;
       try {
         errorPayload = await response.json();
       } catch {

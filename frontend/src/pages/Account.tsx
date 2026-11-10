@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import { useAuth } from "@/contexts/AuthContext";
+import type { QuizAttemptRecord, QuizResultRecord } from "@/types/quiz";
 import { getUserQuizResults, getUserQuizAttempts } from "@/services/api";
 import { PackageInfoCard } from "@/components/packages/PackageInfoCard";
 import { getUserInvoices, type Invoice } from "@/services/invoices";
@@ -65,8 +66,8 @@ const Account = () => {
   const [activeSection, setActiveSection] = useState("profile");
   const { user, loading, logout, isAuthenticated } = useAuth();
   const navigate = useNavigate();
-  const [quizResults, setQuizResults] = useState<any[]>([]);
-  const [quizAttempts, setQuizAttempts] = useState<any[]>([]);
+  const [quizResults, setQuizResults] = useState<QuizResultRecord[]>([]);
+  const [quizAttempts, setQuizAttempts] = useState<QuizAttemptRecord[]>([]);
   const [loadingQuizResults, setLoadingQuizResults] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
   const [invoices, setInvoices] = useState<Invoice[]>([]);

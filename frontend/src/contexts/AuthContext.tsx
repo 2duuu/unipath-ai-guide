@@ -47,23 +47,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }, []);
 
   const login = async (data: LoginRequest) => {
-    try {
-      const response = await authService.login(data);
-      setUser(response.user);
-      return response.user;
-    } catch (error) {
-      throw error;
-    }
+    const response = await authService.login(data);
+    setUser(response.user);
+    return response.user;
   };
 
   const register = async (data: RegisterRequest) => {
-    try {
-      const response = await authService.register(data);
-      setUser(response.user);
-      return response.user;
-    } catch (error) {
-      throw error;
-    }
+    const response = await authService.register(data);
+    setUser(response.user);
+    return response.user;
   };
 
   const logout = () => {

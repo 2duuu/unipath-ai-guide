@@ -13,6 +13,7 @@ import { savePendingQuiz } from '@/lib/pendingQuiz';
 import type {
   Question,
   Answer,
+  AnswerValue,
   Match,
   UniversityMatch,
   ProgramMatch,
@@ -29,7 +30,7 @@ export default function Quiz() {
   const [step, setStep] = useState<'initial' | 'results' | 'extended' | 'program-results' | 'feedback'>('initial');
   const [questions, setQuestions] = useState<Question[]>([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [answers, setAnswers] = useState<Record<string, any>>({});
+  const [answers, setAnswers] = useState<Record<string, AnswerValue>>({});
   const [profileId, setProfileId] = useState<number | null>(null);
   const [matches, setMatches] = useState<Match[]>([]);
   const [matchType, setMatchType] = useState<'university' | 'program'>('university');
@@ -76,7 +77,7 @@ export default function Quiz() {
     }
   };
 
-  const handleAnswer = (questionId: string, answer: any) => {
+  const handleAnswer = (questionId: string, answer: AnswerValue) => {
     setAnswers(prev => {
       const newAnswers = { ...prev, [questionId]: answer };
       // Mark quiz as started when first question is answered
@@ -157,7 +158,7 @@ export default function Quiz() {
     try {
       const mainMatch = matches[0] ? (quizType === 'initial' ? (matches[0] as UniversityMatch).university_name : (matches[0] as ProgramMatch).program_name) : 'No match';
       const score = matches[0] ? (quizType === 'initial' ? (matches[0] as UniversityMatch).match_score : (matches[0] as ProgramMatch).match_score) : 0;
-      const matchedList = matches.map((m: any) => m.university_name || m.program_name);
+      const matchedList = matches.map((m) => m.university_name || ('program_name' in m ? m.program_name : ''));
 
       await saveQuizAttempt({
         user_id: user.id,

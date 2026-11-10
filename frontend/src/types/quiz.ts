@@ -14,9 +14,12 @@ export interface Question {
   step?: number;
 }
 
+/** A quiz answer: one option ID, several option IDs, a number, or free text. */
+export type AnswerValue = string | number | string[];
+
 export interface Answer {
   question_id: string;
-  answer: any;
+  answer: AnswerValue;
 }
 
 export interface UniversityMatch {
@@ -94,4 +97,52 @@ export interface FeedbackResponse {
 export interface StatsResponse {
   total_profiles: number;
   total_feedback: number;
+}
+
+/** Shapes returned by the account endpoints in backend/app/api/routes/quiz.py. */
+export interface QuizResultRecord {
+  id: number;
+  quiz_type: string;
+  main_match_field: string;
+  compatibility_score: number;
+  description: string;
+  matched_universities: string[];
+  matched_programs: string[] | null;
+  created_at: string;
+}
+
+export interface QuizResultsResponse {
+  quiz_results: QuizResultRecord[];
+}
+
+export interface QuizAttemptRecord {
+  id: number;
+  quiz_label: string;
+  quiz_type: string;
+  num_questions: number;
+  main_match: string;
+  score_percentage: number;
+  matched_universities: string[];
+  created_at: string;
+}
+
+export interface QuizAttemptsResponse {
+  quiz_attempts: QuizAttemptRecord[];
+}
+
+/** Body of POST /api/quiz/save-attempt (SaveQuizAttemptRequest in the backend). */
+export interface SaveQuizAttemptRequest {
+  user_id: number;
+  quiz_type: 'initial' | 'extended';
+  num_questions: number;
+  main_match: string;
+  score_percentage: number;
+  matched_universities: string[];
+  quiz_answers: Record<string, AnswerValue>;
+}
+
+export interface SaveQuizAttemptResponse {
+  success: boolean;
+  message: string;
+  attempt_id: number;
 }
