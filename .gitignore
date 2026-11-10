@@ -27,3 +27,17 @@ dist-ssr
 .env
 .env.*
 !.env.example
+
+# Python
+__pycache__/
+*.pyc
+venv/
+.venv/
+.pytest_cache/
+htmlcov/
+coverage.xml
+.coverage
+
+# Generated databases (unihub.db is the seeded app database and stays tracked)
+*.db.backup
+backend/data/test_*.db
