@@ -1,3 +1,0 @@
-"""
-UniHub tests package.
-"""
