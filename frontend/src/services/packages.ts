@@ -121,17 +121,13 @@ export async function downloadRecommendationsPDF(): Promise<Blob> {
  * Trigger PDF download in browser
  */
 export async function triggerPDFDownload(): Promise<void> {
-  try {
-    const blob = await downloadRecommendationsPDF();
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `unipath-recommendations-${new Date().toISOString().split('T')[0]}.pdf`;
-    document.body.appendChild(a);
-    a.click();
-    window.URL.revokeObjectURL(url);
-    document.body.removeChild(a);
-  } catch (error) {
-    throw error;
-  }
+  const blob = await downloadRecommendationsPDF();
+  const url = window.URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `unipath-recommendations-${new Date().toISOString().split('T')[0]}.pdf`;
+  document.body.appendChild(a);
+  a.click();
+  window.URL.revokeObjectURL(url);
+  document.body.removeChild(a);
 }

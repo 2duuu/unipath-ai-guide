@@ -207,13 +207,15 @@ class TestEdgeCases:
         
         extended_system = ExtendedInterviewSystem(profile)
         
+        # learning_style moved to the initial quiz in a5633a6 and is inherited
+        # by the extended quiz, so use a question the extended quiz still asks.
         # Test with empty string (should fail validation)
-        result = extended_system.process_response("learning_style", "")
+        result = extended_system.process_response("class_size", "")
         # Should return False for invalid response
         assert result is False
         
         # Test with valid response
-        result = extended_system.process_response("learning_style", "practical")
+        result = extended_system.process_response("class_size", "small")
         assert result is True
         
         extended_system.close()

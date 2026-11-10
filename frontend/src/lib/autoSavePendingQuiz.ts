@@ -44,7 +44,7 @@ export async function autoSavePendingQuiz(userId: number): Promise<AutoSaveResul
           : (matches[0] as ProgramMatch).match_score) 
       : 0;
     
-    const matchedList = matches.map((m: any) => m.university_name || m.program_name);
+    const matchedList = matches.map((m) => m.university_name || ('program_name' in m ? m.program_name : ''));
 
     // Save to backend
     await saveQuizAttempt({

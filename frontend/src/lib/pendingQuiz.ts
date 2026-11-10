@@ -3,14 +3,14 @@
  * Used when non-authenticated users try to save quiz results
  */
 
-import type { Match } from '@/types/quiz';
+import type { AnswerValue, Match } from '@/types/quiz';
 
 const PENDING_QUIZ_KEY = 'pendingQuizSave';
 const EXPIRATION_TIME = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
 
 export interface PendingQuizData {
   quizType: 'initial' | 'extended';
-  answers: Record<string, any>;
+  answers: Record<string, AnswerValue>;
   matches: Match[];
   profileId: number | null;
   timestamp: number;
