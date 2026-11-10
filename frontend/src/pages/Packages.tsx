@@ -1,9 +1,9 @@
-import Navbar from "@/components/Navbar";
-import PricingSection from "@/components/PricingSection";
-import CTASection from "@/components/CTASection";
-import Footer from "@/components/Footer";
-import { ClaimPackageButton } from "@/components/ClaimPackageButton";
-import { ViewPackageDetailsButton } from "@/components/ViewPackageDetailsButton";
+import Navbar from "@/components/layout/Navbar";
+import PricingSection from "@/components/landing/PricingSection";
+import CTASection from "@/components/landing/CTASection";
+import Footer from "@/components/layout/Footer";
+import { ClaimPackageButton } from "@/components/packages/ClaimPackageButton";
+import { ViewPackageDetailsButton } from "@/components/packages/ViewPackageDetailsButton";
 import { PackageTier, PACKAGE_DETAILS } from "@/lib/packages";
 import { motion } from "framer-motion";
 import { useState, useEffect } from "react";

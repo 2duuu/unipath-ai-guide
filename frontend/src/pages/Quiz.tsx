@@ -9,7 +9,7 @@ import {
   saveQuizAttempt,
 } from '@/services/api';
 import { useAuth } from '@/contexts/AuthContext';
-import { savePendingQuiz } from '@/utils/pendingQuiz';
+import { savePendingQuiz } from '@/lib/pendingQuiz';
 import type {
   Question,
   Answer,
@@ -17,8 +17,8 @@ import type {
   UniversityMatch,
   ProgramMatch,
 } from '@/types/quiz';
-import Navbar from '@/components/Navbar';
-import Footer from '@/components/Footer';
+import Navbar from '@/components/layout/Navbar';
+import Footer from '@/components/layout/Footer';
 import './Quiz.css';
 
 export default function Quiz() {

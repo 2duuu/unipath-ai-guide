@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { FileText, Brain, Database, Target, Gift, ArrowRight } from "lucide-react";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
+import Navbar from "@/components/layout/Navbar";
+import Footer from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
 
 const steps = [

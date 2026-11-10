@@ -17,8 +17,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import Navbar from '@/components/Navbar';
-import Footer from '@/components/Footer';
+import Navbar from '@/components/layout/Navbar';
+import Footer from '@/components/layout/Footer';
 import { PackageTier, PACKAGE_DETAILS, isDowngrade, isUpgrade } from '@/lib/packages';
 import { claimPackage, getPackageInfo } from '@/services/packages';
 import { useToast } from '@/hooks/use-toast';
