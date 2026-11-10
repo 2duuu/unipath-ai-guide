@@ -406,10 +406,11 @@ class UniversityDatabaseQuery:
             ProgramDB.university_id == db_uni.id
         ).all()
         
-        # Extract unique fields from programs
-        strong_programs = list(set([
-            FieldOfInterest(p.field) for p in programs if p.field
-        ]))
+        # Extract unique fields from programs, sorted so output does not depend on PYTHONHASHSEED
+        strong_programs = [
+            FieldOfInterest(field)
+            for field in sorted({p.field for p in programs if p.field})
+        ]
         
         # Get tuition in EUR
         tuition_eur = db_uni.tuition_annual_eur or db_uni.tuition_eu or 0

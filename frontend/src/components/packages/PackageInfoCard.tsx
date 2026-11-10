@@ -15,7 +15,7 @@ const FEATURE_LABELS: Record<PackageFeature, string> = {
   [PackageFeature.ADVANCED_AI_COMPARISONS]: 'Advanced AI Comparisons',
   [PackageFeature.RANKED_RECOMMENDATIONS]: 'Ranked Recommendations',
   [PackageFeature.TRADEOFF_ANALYSIS]: 'Trade-off Analysis',
-  [PackageFeature.ADMISSION_PROBABILITY]: 'Admission Probability',
+  [PackageFeature.REQUIREMENTS_FIT_CHECK]: 'Requirements & Fit Check',
   [PackageFeature.PDF_SUMMARY]: 'PDF Summary Download',
   [PackageFeature.UNLIMITED_AI_CHAT]: 'Unlimited AI Chat',
   [PackageFeature.APPLICATION_STRATEGY]: 'Application Strategy Guide',

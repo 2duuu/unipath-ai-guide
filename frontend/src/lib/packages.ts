@@ -15,7 +15,7 @@ export enum PackageFeature {
   ADVANCED_AI_COMPARISONS = 'advanced_ai_comparisons',
   RANKED_RECOMMENDATIONS = 'ranked_recommendations',
   TRADEOFF_ANALYSIS = 'tradeoff_analysis',
-  ADMISSION_PROBABILITY = 'admission_probability',
+  REQUIREMENTS_FIT_CHECK = 'requirements_fit_check',
   PDF_SUMMARY = 'pdf_summary',
   UNLIMITED_AI_CHAT = 'unlimited_ai_chat',
   APPLICATION_STRATEGY = 'application_strategy',

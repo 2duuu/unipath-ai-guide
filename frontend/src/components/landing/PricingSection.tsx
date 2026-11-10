@@ -26,7 +26,7 @@ const plans = [
       { text: "Comparații AI avansate (A vs B vs C)", included: true },
       { text: "Universități & programe clasate după potrivire", included: true },
       { text: "Analiză trade-off-uri (cost, competitivitate)", included: true },
-      { text: "Estimări probabilitate admitere (intervale)", included: true },
+      { text: "Requirements & fit check (based on verified, published requirements)", included: true },
       { text: "Rezumat PDF pentru părinți", included: true },
       { text: "Chat nelimitat cu AI specializat", included: true },
     ],
@@ -44,11 +44,11 @@ const plans = [
         "Ranked best-fit universities & programs",
         "Trade-off analysis (cost, competitiveness, outcomes)",
         "Risk & uncertainty overview",
-        "AI-based admission probability estimates (ranges)",
+        "Requirements & fit check: your stated situation compared with verified, published admission requirements",
         "Parent-friendly written summary (PDF)",
         "Unlimited chat with Trained AI model in academic advising"
       ],
-      note: "Ethical note: Admission probabilities are estimates, not guarantees."
+      note: "Ethical note: UniHub never predicts admission chances. The fit check only compares your situation with published requirements."
     }
   },
   {

@@ -244,7 +244,7 @@ export function ClaimPackageButton({
                 <li>✓ Advanced AI Comparisons</li>
                 <li>✓ Ranked Recommendations</li>
                 <li>✓ Trade-off Analysis</li>
-                <li>✓ Admission Probability</li>
+                <li>✓ Requirements &amp; Fit Check</li>
                 <li>✓ PDF Summary Download</li>
                 <li>✓ Unlimited AI Chat</li>
               </ul>
